@@ -74,18 +74,35 @@ export default function Kamus() {
   };
 
   const handleLike = async (wordId) => {
-    if (likedWords[wordId]) return; // already liked
+    const isLiked = likedWords[wordId];
+    
+    if (isLiked) {
+      // UNLIKE path
+      const updatedLikes = { ...likedWords };
+      delete updatedLikes[wordId];
+      setLikedWords(updatedLikes);
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('salama_liked_words', JSON.stringify(updatedLikes));
+      }
 
-    const updatedLikes = { ...likedWords, [wordId]: true };
-    setLikedWords(updatedLikes);
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('salama_liked_words', JSON.stringify(updatedLikes));
-    }
+      // Call database to decrement like
+      const res = await db.unlikeWord(wordId);
+      if (res.data) {
+        setWords(prev => prev.map(w => w.id === wordId ? { ...w, likes: res.data.likes } : w));
+      }
+    } else {
+      // LIKE path
+      const updatedLikes = { ...likedWords, [wordId]: true };
+      setLikedWords(updatedLikes);
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('salama_liked_words', JSON.stringify(updatedLikes));
+      }
 
-    // Call database to increment like
-    const res = await db.likeWord(wordId);
-    if (res.data) {
-      setWords(prev => prev.map(w => w.id === wordId ? { ...w, likes: res.data.likes } : w));
+      // Call database to increment like
+      const res = await db.likeWord(wordId);
+      if (res.data) {
+        setWords(prev => prev.map(w => w.id === wordId ? { ...w, likes: res.data.likes } : w));
+      }
     }
   };
 

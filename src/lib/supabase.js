@@ -123,6 +123,15 @@ export const localDb = {
     setLocalData('salama_kata', db.kata);
     return { data: db.kata[idx], error: null };
   },
+  async unlikeWord(id) {
+    const db = getLocalDb();
+    const idx = db.kata.findIndex(w => w.id === Number(id));
+    if (idx === -1) return { data: null, error: 'Word not found' };
+    const likes = Math.max(0, Number(db.kata[idx].likes || 0) - 1);
+    db.kata[idx] = { ...db.kata[idx], likes };
+    setLocalData('salama_kata', db.kata);
+    return { data: db.kata[idx], error: null };
+  },
 
   // Komentar Kata
   async getWordComments(kataId) {
@@ -263,8 +272,26 @@ export const db = {
         .select('*')
         .or('status.eq.aktif,status.eq.dalam_review')
         .order('kata', { ascending: true });
-      if (!error && data && data.length > 0) return { data, error };
-      if (error) console.error("Supabase getWords error:", error);
+      
+      if (!error) {
+        if (data && data.length > 0) {
+          return { data, error };
+        } else {
+          // Auto-seed words if the table is empty
+          console.log("[Salama AI] Supabase kata table is empty. Auto-seeding vocabulary words...");
+          const { data: seededData, error: seedErr } = await supabase
+            .from('kata')
+            .insert(seedWords)
+            .select();
+          if (!seedErr && seededData) {
+            return { data: seededData, error: null };
+          }
+          console.error("[Salama AI] Auto-seeding failed:", seedErr);
+          return { data: [], error: seedErr };
+        }
+      }
+      console.error("Supabase getWords error:", error);
+      return { data: null, error };
     }
     return localDb.getWords();
   },
@@ -275,8 +302,8 @@ export const db = {
         .from('kata')
         .select('*')
         .order('id', { ascending: false });
-      if (!error) return { data, error };
-      console.error("Supabase getAllWordsAdmin error:", error);
+      if (error) console.error("Supabase getAllWordsAdmin error:", error);
+      return { data, error };
     }
     return localDb.getAllWordsAdmin();
   },
@@ -287,8 +314,8 @@ export const db = {
         .from('kata')
         .insert([word])
         .select();
-      if (!error) return { data, error };
-      console.error("Supabase insertWord error:", error);
+      if (error) console.error("Supabase insertWord error:", error);
+      return { data, error };
     }
     return localDb.insertWord(word);
   },
@@ -300,8 +327,8 @@ export const db = {
         .update(updates)
         .eq('id', id)
         .select();
-      if (!error) return { data, error };
-      console.error("Supabase updateWord error:", error);
+      if (error) console.error("Supabase updateWord error:", error);
+      return { data, error };
     }
     return localDb.updateWord(id, updates);
   },
@@ -312,8 +339,8 @@ export const db = {
         .from('kata')
         .delete()
         .eq('id', id);
-      if (!error) return { error };
-      console.error("Supabase deleteWord error:", error);
+      if (error) console.error("Supabase deleteWord error:", error);
+      return { error };
     }
     return localDb.deleteWord(id);
   },
@@ -334,13 +361,42 @@ export const db = {
             .eq('id', id)
             .select()
             .single();
-          if (!error) return { data, error: null };
+          return { data, error };
         }
+        return { data: null, error: fetchErr };
       } catch (err) {
         console.error("Supabase likeWord error:", err);
+        return { data: null, error: err };
       }
     }
     return localDb.likeWord(id);
+  },
+
+  async unlikeWord(id) {
+    if (isSupabaseConfigured) {
+      try {
+        const { data: current, error: fetchErr } = await supabase
+          .from('kata')
+          .select('likes')
+          .eq('id', id)
+          .single();
+        
+        if (!fetchErr && current) {
+          const { data, error } = await supabase
+            .from('kata')
+            .update({ likes: Math.max(0, (current.likes || 0) - 1) })
+            .eq('id', id)
+            .select()
+            .single();
+          return { data, error };
+        }
+        return { data: null, error: fetchErr };
+      } catch (err) {
+        console.error("Supabase unlikeWord error:", err);
+        return { data: null, error: err };
+      }
+    }
+    return localDb.unlikeWord(id);
   },
 
   // Komentar Kata
@@ -351,8 +407,8 @@ export const db = {
         .select('*')
         .eq('kata_id', kataId)
         .order('id', { ascending: false });
-      if (!error) return { data, error };
-      console.error("Supabase getWordComments error:", error);
+      if (error) console.error("Supabase getWordComments error:", error);
+      return { data, error };
     }
     return localDb.getWordComments(kataId);
   },
@@ -363,8 +419,8 @@ export const db = {
         .from('komentar_kata')
         .select('*')
         .order('id', { ascending: false });
-      if (!error) return { data, error };
-      console.error("Supabase getAllWordComments error:", error);
+      if (error) console.error("Supabase getAllWordComments error:", error);
+      return { data, error };
     }
     return localDb.getAllWordComments();
   },
@@ -375,8 +431,8 @@ export const db = {
         .from('komentar_kata')
         .insert([comment])
         .select();
-      if (!error) return { data, error };
-      console.error("Supabase insertWordComment error:", error);
+      if (error) console.error("Supabase insertWordComment error:", error);
+      return { data, error };
     }
     return localDb.insertWordComment(comment);
   },
@@ -388,8 +444,8 @@ export const db = {
         .from('laporan_koreksi')
         .select('*, kata:kata_id(*)')
         .order('id', { ascending: false });
-      if (!error) return { data, error };
-      console.error("Supabase getCorrections error:", error);
+      if (error) console.error("Supabase getCorrections error:", error);
+      return { data, error };
     }
     return localDb.getCorrections();
   },
@@ -402,9 +458,10 @@ export const db = {
         .select();
       if (!error) {
         await supabase.from('kata').update({ status: 'dalam_review' }).eq('id', correction.kata_id);
-        return { data, error };
+      } else {
+        console.error("Supabase insertCorrection error:", error);
       }
-      console.error("Supabase insertCorrection error:", error);
+      return { data, error };
     }
     return localDb.insertCorrection(correction);
   },
@@ -433,8 +490,10 @@ export const db = {
           }
           return { error: null };
         }
+        return { error };
       }
       console.error("Supabase updateCorrectionStatus error:", fetchErr);
+      return { error: fetchErr };
     }
     return localDb.updateCorrectionStatus(id, status);
   },
@@ -446,8 +505,8 @@ export const db = {
         .from('rating')
         .select('*')
         .order('id', { ascending: false });
-      if (!error) return { data, error };
-      console.error("Supabase getRatings error:", error);
+      if (error) console.error("Supabase getRatings error:", error);
+      return { data, error };
     }
     return localDb.getRatings();
   },
@@ -458,8 +517,8 @@ export const db = {
         .from('rating')
         .insert([rating])
         .select();
-      if (!error) return { data, error };
-      console.error("Supabase insertRating error:", error);
+      if (error) console.error("Supabase insertRating error:", error);
+      return { data, error };
     }
     return localDb.insertRating(rating);
   },
@@ -470,8 +529,8 @@ export const db = {
       const { data, error } = await supabase
         .from('skor_kuis')
         .select('*');
-      if (!error) return { data, error };
-      console.error("Supabase getQuizScores error:", error);
+      if (error) console.error("Supabase getQuizScores error:", error);
+      return { data, error };
     }
     return localDb.getQuizScores();
   },
@@ -482,8 +541,8 @@ export const db = {
         .from('skor_kuis')
         .insert([score])
         .select();
-      if (!error) return { data, error };
-      console.error("Supabase insertQuizScore error:", error);
+      if (error) console.error("Supabase insertQuizScore error:", error);
+      return { data, error };
     }
     return localDb.insertQuizScore(score);
   },
