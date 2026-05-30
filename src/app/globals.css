@@ -1,0 +1,100 @@
+@import "tailwindcss";
+
+@theme {
+  /* Elegant, handcrafted modern palette — slate background with gold and blue details */
+  --color-ocean-950: #090d16;
+  --color-ocean-900: #0f172a;
+  --color-ocean-800: #1e293b;
+  --color-ocean-700: #334155;
+  --color-ocean-600: #2563eb;
+  --color-ocean-500: #3b82f6;
+  --color-gold-500: #d97706;
+  --color-gold-600: #b45309;
+  --color-gold-400: #f59e0b;
+  --color-gold-300: #fcd34d;
+
+  --animate-fade-in-up: fadeInUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+:root {
+  --background: #090d16;
+  --foreground: #f1f5f9;
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  overflow-x: hidden;
+  background-attachment: fixed;
+}
+
+/* Premium Flat Card Surface (Clean and Professional) */
+.glass-panel {
+  background: #111827;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+}
+
+.glass-panel-hover {
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.glass-panel-hover:hover {
+  background: #151d30;
+  border-color: rgba(245, 158, 11, 0.2);
+  transform: translateY(-1px);
+}
+
+.glass-card-gold {
+  background: rgba(217, 119, 6, 0.05);
+  border: 1px solid rgba(217, 119, 6, 0.15);
+}
+
+.glass-card-ocean {
+  background: rgba(59, 130, 246, 0.05);
+  border: 1px solid rgba(59, 130, 246, 0.15);
+}
+
+/* Scrollbars */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+::-webkit-scrollbar-track {
+  background: #090d16;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+/* Typography Gradient */
+.text-gradient-gold {
+  color: #f59e0b;
+}
+
+.text-gradient-ocean {
+  color: #3b82f6;
+}
+
+.bg-gradient-premium {
+  background: #0f172a;
+}
