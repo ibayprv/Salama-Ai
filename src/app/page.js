@@ -6,7 +6,7 @@ import {
   Sparkles, Search, MessageSquare, Award, BarChart2, 
   Users, BookOpen, Star, Send, ShieldCheck, Heart 
 } from 'lucide-react';
-import { db } from '@/lib/supabase';
+import supabase, { db } from '@/lib/supabase';
 
 export default function Home() {
   const [stats, setStats] = useState({
@@ -67,6 +67,26 @@ export default function Home() {
     };
 
     initPage();
+
+    // Subscribe to realtime database updates
+    let channel;
+    if (supabase) {
+      channel = supabase
+        .channel('homepage-realtime')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'rating' }, () => {
+          initPage();
+        })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'pengunjung' }, () => {
+          initPage();
+        })
+        .subscribe();
+    }
+
+    return () => {
+      if (channel) {
+        supabase.removeChannel(channel);
+      }
+    };
   }, []);
 
   const handleRatingSubmit = async (e) => {

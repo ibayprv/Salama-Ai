@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Search, Filter, AlertTriangle, Send, CheckCircle, HelpCircle, ShieldAlert, Heart, MessageSquare, ThumbsUp } from 'lucide-react';
-import { db } from '@/lib/supabase';
+import supabase, { db } from '@/lib/supabase';
 
 export default function Kamus() {
   const [words, setWords] = useState([]);
@@ -42,6 +42,28 @@ export default function Kamus() {
         }
       }
     }
+
+    // Subscribe to realtime database updates
+    let channel;
+    if (supabase) {
+      channel = supabase
+        .channel('kamus-realtime')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'kata' }, () => {
+          fetchWords();
+        })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'komentar_kata' }, (payload) => {
+          if (payload.new && payload.new.kata_id) {
+            loadComments(payload.new.kata_id);
+          }
+        })
+        .subscribe();
+    }
+
+    return () => {
+      if (channel) {
+        supabase.removeChannel(channel);
+      }
+    };
   }, []);
 
   const fetchWords = async () => {

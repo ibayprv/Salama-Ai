@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { BarChart2, Users, BookOpen, Star, Award, TrendingUp, Compass, MessageSquare, Heart } from 'lucide-react';
-import { db } from '@/lib/supabase';
+import supabase, { db } from '@/lib/supabase';
 
 export default function Statistik() {
   const [loading, setLoading] = useState(true);
@@ -23,8 +23,8 @@ export default function Statistik() {
   });
 
   useEffect(() => {
-    const fetchStats = async () => {
-      setLoading(true);
+    const fetchStats = async (showLoading = true) => {
+      if (showLoading) setLoading(true);
       try {
         // 1. Visit Counter
         const visitData = await db.recordVisit();
@@ -112,11 +112,37 @@ export default function Statistik() {
       } catch (err) {
         console.error(err);
       } finally {
-        setLoading(false);
+        if (showLoading) setLoading(false);
       }
     };
 
-    fetchStats();
+    fetchStats(true);
+
+    // Subscribe to realtime database updates
+    let channel;
+    if (supabase) {
+      channel = supabase
+        .channel('statistik-realtime')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'pengunjung' }, () => {
+          fetchStats(false);
+        })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'kata' }, () => {
+          fetchStats(false);
+        })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'rating' }, () => {
+          fetchStats(false);
+        })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'komentar_kata' }, () => {
+          fetchStats(false);
+        })
+        .subscribe();
+    }
+
+    return () => {
+      if (channel) {
+        supabase.removeChannel(channel);
+      }
+    };
   }, []);
 
   const maxVisits = data.history.length > 0 
