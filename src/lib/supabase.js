@@ -21,7 +21,7 @@ if (supabaseUrl && supabaseAnonKey) {
 
 // CACHE BUSTER: Hapus data lama (versi sebelumnya dengan 300 kata bernomor)
 // Setiap kali versi seed berubah, naikkan angka ini agar data lama di-reset
-const SEED_DATA_VERSION = 'v5_full148';
+const SEED_DATA_VERSION = 'v6_full157';
 
 const initCacheBuster = () => {
   if (typeof window === 'undefined') return;

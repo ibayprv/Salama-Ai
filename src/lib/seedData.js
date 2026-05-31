@@ -1484,6 +1484,98 @@ export const seedWords = [
     kelas_kata: "kata_benda",
     contoh: "Pudiku mari done fola. (Istri saya ada di rumah.)",
     status: "aktif"
+  },
+
+  // ==================== TAMBAHAN KOSAKATA TERNATE (dari dokumen referensi) ====================
+  {
+    id: 149,
+    kata: "dofu",
+    bahasa: "ternate",
+    dialek: "melayu_ternate",
+    arti: "banyak",
+    kelas_kata: "kata_sifat",
+    contoh: "Njo dofu dahe ngolo. (Ikan banyak di laut.)",
+    status: "aktif"
+  },
+  {
+    id: 150,
+    kata: "logi",
+    bahasa: "ternate",
+    dialek: "melayu_ternate",
+    arti: "berjalan",
+    kelas_kata: "kata_kerja",
+    contoh: "Ri logi tagi pasa. (Saya berjalan ke pasar.)",
+    status: "aktif"
+  },
+  {
+    id: 151,
+    kata: "ngama-ngama",
+    bahasa: "ternate",
+    dialek: "melayu_ternate",
+    arti: "bintang",
+    kelas_kata: "kata_benda",
+    contoh: "Ngama-ngama jela dahe kie. (Bintang terang di atas gunung.)",
+    status: "aktif"
+  },
+  {
+    id: 152,
+    kata: "uju",
+    bahasa: "ternate",
+    dialek: "melayu_ternate",
+    arti: "dan",
+    kelas_kata: "kata_sifat",
+    contoh: "Ri uju una tagi gura. (Saya dan dia pergi ke kebun.)",
+    status: "aktif"
+  },
+  {
+    id: 153,
+    kata: "fiki",
+    bahasa: "ternate",
+    dialek: "melayu_ternate",
+    arti: "danau",
+    kelas_kata: "kata_benda",
+    contoh: "Fiki ena maku rihu. (Danau itu sangat indah.)",
+    status: "aktif"
+  },
+  {
+    id: 154,
+    kata: "kame",
+    bahasa: "ternate",
+    dialek: "melayu_ternate",
+    arti: "dingin",
+    kelas_kata: "kata_sifat",
+    contoh: "Kore kame dahe kie. (Angin dingin di atas gunung.)",
+    status: "aktif"
+  },
+  {
+    id: 155,
+    kata: "alo",
+    bahasa: "ternate",
+    dialek: "melayu_ternate",
+    arti: "dua",
+    kelas_kata: "kata_bilangan",
+    contoh: "Ngofa alo tagi sigi. (Dua anak pergi ke mesjid.)",
+    status: "aktif"
+  },
+  {
+    id: 156,
+    kata: "gesi",
+    bahasa: "ternate",
+    dialek: "melayu_ternate",
+    arti: "gigi",
+    kelas_kata: "kata_benda",
+    contoh: "Gesi ngofa done laha. (Gigi anak itu bagus.)",
+    status: "aktif"
+  },
+  {
+    id: 157,
+    kata: "lohi",
+    bahasa: "ternate",
+    dialek: "melayu_ternate",
+    arti: "hutan",
+    kelas_kata: "kata_benda",
+    contoh: "Lohi lamo dahe kie Gamalama. (Hutan besar di gunung Gamalama.)",
+    status: "aktif"
   }
 ];
 
