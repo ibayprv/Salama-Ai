@@ -47,13 +47,31 @@ export default function Admin() {
   const [sortBy, setSortBy] = useState('id_asc');
 
   useEffect(() => {
-    // Check local session
-    if (typeof window !== 'undefined') {
-      const auth = localStorage.getItem('salama_admin_auth');
-      if (auth === 'true') {
-        setIsAuthenticated(true);
+    // Verify existing session token with server
+    const verifySession = async () => {
+      if (typeof window === 'undefined') return;
+      const token = sessionStorage.getItem('salama_admin_token');
+      if (!token) return;
+      
+      try {
+        const res = await fetch('/api/admin/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'verify', token })
+        });
+        const data = await res.json();
+        if (data.success) {
+          setIsAuthenticated(true);
+        } else {
+          // Token expired or invalid — clean up
+          sessionStorage.removeItem('salama_admin_token');
+        }
+      } catch {
+        // Server unreachable — clear stale token
+        sessionStorage.removeItem('salama_admin_token');
       }
-    }
+    };
+    verifySession();
   }, []);
 
   useEffect(() => {
@@ -89,8 +107,8 @@ export default function Admin() {
       const data = await res.json();
       if (data.success) {
         setIsAuthenticated(true);
-        if (typeof window !== 'undefined') {
-          localStorage.setItem('salama_admin_auth', 'true');
+        if (typeof window !== 'undefined' && data.token) {
+          sessionStorage.setItem('salama_admin_token', data.token);
         }
       } else {
         setLoginError(data.message || 'Kata sandi salah. Silakan coba lagi.');
@@ -102,11 +120,20 @@ export default function Admin() {
     }
   };
 
-  const handleLogout = () => {
-    setIsAuthenticated(false);
+  const handleLogout = async () => {
     if (typeof window !== 'undefined') {
-      localStorage.removeItem('salama_admin_auth');
+      const token = sessionStorage.getItem('salama_admin_token');
+      // Invalidate server session
+      try {
+        await fetch('/api/admin/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'logout', token })
+        });
+      } catch { /* ignore */ }
+      sessionStorage.removeItem('salama_admin_token');
     }
+    setIsAuthenticated(false);
   };
 
   // CRUD Operations
@@ -895,7 +922,7 @@ export default function Admin() {
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="Masukkan kata sandi (default: admin123)"
+              placeholder="Masukkan kata sandi administrator"
               className="w-full bg-slate-950 border border-white/10 rounded-xl px-4 py-3 text-xs text-slate-100 placeholder-slate-600 focus:outline-none focus:border-rose-500 focus:ring-1 focus:ring-rose-500 transition-all duration-300"
             />
           </div>
