@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { Search, Filter, AlertTriangle, Send, CheckCircle, HelpCircle, ShieldAlert, Heart, MessageSquare, ThumbsUp } from 'lucide-react';
+import { Search, Filter, AlertTriangle, Send, CheckCircle, HelpCircle, ShieldAlert, Heart, MessageSquare, ThumbsUp, X } from 'lucide-react';
 import supabase, { db } from '@/lib/supabase';
 
 export default function Kamus() {
@@ -300,9 +300,18 @@ export default function Kamus() {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Cari kata (contoh: fola, rumah, pia, baik)..."
-            className="w-full bg-slate-950/60 border border-white/10 rounded-xl pl-12 pr-4 py-4 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-ocean-500 focus:ring-1 focus:ring-ocean-500 transition-all duration-300"
+            className="w-full bg-slate-950/60 border border-white/10 rounded-xl pl-12 pr-12 py-4 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-ocean-500 focus:ring-1 focus:ring-ocean-500 transition-all duration-300"
           />
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-500" />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery('')}
+              className="absolute right-4 top-1/2 -translate-y-1/2 p-1 text-slate-450 hover:text-white hover:bg-white/15 rounded-full transition-all duration-200"
+              title="Clear search"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          )}
         </div>
 
         <div className="flex flex-col sm:flex-row gap-4 items-center justify-between pt-2">
