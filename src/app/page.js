@@ -151,42 +151,43 @@ export default function Home() {
   };
 
   return (
-    <div className="space-y-16 animate-fade-in-up">
+    <div className="space-y-16 animate-fade-in-up pb-16">
       
       {/* ================= HERO SECTION ================= */}
-      <section className="relative text-center py-16 sm:py-24 overflow-hidden rounded-3xl glass-panel border border-white/10 px-6 sm:px-12">
-        <div className="absolute top-0 right-0 w-72 h-72 bg-ocean-500/10 rounded-full blur-3xl" />
-        <div className="absolute bottom-0 left-0 w-72 h-72 bg-gold-500/5 rounded-full blur-3xl" />
+      <section className="relative text-center py-16 sm:py-24 overflow-hidden rounded-[2.5rem] glass-panel border border-slate-200/70 px-6 sm:px-12 bg-white">
+        {/* Soft elegant ambient glows in corners */}
+        <div className="absolute top-0 right-0 w-80 h-80 bg-sky-500/5 rounded-full blur-[100px]" />
+        <div className="absolute bottom-0 left-0 w-80 h-80 bg-amber-500/5 rounded-full blur-[100px]" />
 
-        <div className="relative max-w-3xl mx-auto space-y-6">
-          <div className="inline-flex items-center space-x-2 px-3 py-1 bg-white/5 border border-white/10 rounded-full text-xs font-semibold text-gold-400 tracking-wider uppercase">
-            <Sparkles className="h-4 w-4 text-gold-500 animate-spin" />
+        <div className="relative max-w-3xl mx-auto space-y-8">
+          <div className="inline-flex items-center space-x-2 px-4 py-1.5 bg-amber-50 border border-amber-200/50 rounded-full text-xs font-bold text-amber-700 tracking-wider uppercase">
+            <Sparkles className="h-3.5 w-3.5 text-amber-600 animate-pulse" />
             <span>Duta Bahasa Provinsi Maluku Utara 2026</span>
           </div>
 
-          <h1 className="text-4xl sm:text-6xl font-extrabold tracking-tight">
+          <h1 className="text-4xl sm:text-6xl font-black tracking-tight text-slate-900 leading-tight">
             Selamat Datang di <br className="sm:hidden" />
-            <span className="text-white">SALAMA</span>
-            <span className="text-gradient-gold font-black ml-2">AI</span>
+            <span>SALAMA</span>
+            <span className="text-gradient-gold ml-2">AI</span>
           </h1>
 
-          <p className="text-lg sm:text-xl text-slate-300 font-light max-w-2xl mx-auto leading-relaxed">
-            Platform Kamus Cerdas Digital & Chatbot Interaktif yang didesain khusus untuk melestarikan bahasa daerah <span className="text-ocean-500 font-semibold">Ternate</span> dan <span className="text-gold-400 font-semibold">Sula</span>.
+          <p className="text-base sm:text-lg text-slate-600 font-medium max-w-2xl mx-auto leading-relaxed">
+            Platform Kamus Cerdas Digital & Chatbot Interaktif yang didesain secara elegan untuk melestarikan bahasa daerah <span className="text-sky-600 font-bold">Ternate</span> dan <span className="text-amber-600 font-bold">Sula</span>.
           </p>
 
-          <div className="pt-6 flex flex-col sm:flex-row justify-center items-center gap-4">
+          <div className="pt-4 flex flex-col sm:flex-row justify-center items-center gap-4">
             <Link
               href="/kamus"
-              className="w-full sm:w-auto flex items-center justify-center space-x-2 px-8 py-4 bg-gradient-to-r from-ocean-600 to-ocean-500 hover:from-ocean-500 hover:to-ocean-400 text-white font-bold rounded-2xl transition-all duration-300 transform hover:scale-105 hover:shadow-lg shadow-ocean-500/20 border border-ocean-500/30"
+              className="w-full sm:w-auto flex items-center justify-center space-x-2.5 px-8 py-4 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-2xl transition-all duration-300 transform hover:-translate-y-0.5 shadow-md shadow-slate-950/10 hover:shadow-xl hover:shadow-slate-950/15"
             >
-              <Search className="h-5 w-5" />
+              <Search className="h-4.5 w-4.5" />
               <span>Cari Kosakata</span>
             </Link>
             <Link
               href="/chatbot"
-              className="w-full sm:w-auto flex items-center justify-center space-x-2 px-8 py-4 bg-white/5 border border-white/10 hover:bg-white/10 text-white font-semibold rounded-2xl transition-all duration-300 transform hover:scale-105"
+              className="w-full sm:w-auto flex items-center justify-center space-x-2.5 px-8 py-4 bg-slate-50 border border-slate-200 hover:bg-slate-100 text-slate-800 font-bold rounded-2xl transition-all duration-300 transform hover:-translate-y-0.5 shadow-xs"
             >
-              <MessageSquare className="h-5 w-5 text-gold-500 animate-bounce" />
+              <MessageSquare className="h-4.5 w-4.5 text-amber-600 animate-bounce" />
               <span>Tanya Chatbot AI</span>
             </Link>
           </div>
@@ -195,33 +196,41 @@ export default function Home() {
 
       {/* ================= STATISTICS DASHBOARD ================= */}
       <section className="space-y-6">
-        <h2 className="text-2xl font-bold tracking-wide text-center text-gradient-gold">
+        <h2 className="text-xl font-bold tracking-tight text-center text-slate-800 uppercase tracking-widest text-[11px] font-bold text-slate-455">
           Statistik Penggunaan & Data Riil
         </h2>
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
-          <div className="p-6 rounded-2xl glass-panel border border-white/5 flex flex-col items-center justify-center text-center">
-            <BookOpen className="h-8 w-8 text-ocean-500 mb-3" />
-            <span className="text-3xl font-extrabold text-white">{stats.totalWords}</span>
-            <span className="text-xs text-slate-400 font-medium mt-1">Kosakata Tersedia</span>
+          <div className="p-6 rounded-2xl glass-panel border border-slate-100 flex flex-col items-center justify-center text-center">
+            <div className="p-3 bg-sky-50 rounded-xl mb-3">
+              <BookOpen className="h-6 w-6 text-sky-600" />
+            </div>
+            <span className="text-3xl font-black text-slate-800">{stats.totalWords}</span>
+            <span className="text-xs text-slate-500 font-semibold mt-1">Kosakata Tersedia</span>
           </div>
 
-          <div className="p-6 rounded-2xl glass-panel border border-white/5 flex flex-col items-center justify-center text-center">
-            <Users className="h-8 w-8 text-gold-500 mb-3" />
-            <span className="text-3xl font-extrabold text-white">{stats.total}</span>
-            <span className="text-xs text-slate-400 font-medium mt-1">Pengunjung Web</span>
+          <div className="p-6 rounded-2xl glass-panel border border-slate-100 flex flex-col items-center justify-center text-center">
+            <div className="p-3 bg-amber-50 rounded-xl mb-3">
+              <Users className="h-6 w-6 text-amber-600" />
+            </div>
+            <span className="text-3xl font-black text-slate-800">{stats.total}</span>
+            <span className="text-xs text-slate-500 font-semibold mt-1">Pengunjung Web</span>
           </div>
 
-          <div className="p-6 rounded-2xl glass-panel border border-white/5 flex flex-col items-center justify-center text-center">
-            <Award className="h-8 w-8 text-emerald-500 mb-3" />
-            <span className="text-3xl font-extrabold text-white">{stats.totalQuizzes}</span>
-            <span className="text-xs text-slate-400 font-medium mt-1">Kuis Diselesaikan</span>
+          <div className="p-6 rounded-2xl glass-panel border border-slate-100 flex flex-col items-center justify-center text-center">
+            <div className="p-3 bg-emerald-50 rounded-xl mb-3">
+              <Award className="h-6 w-6 text-emerald-600" />
+            </div>
+            <span className="text-3xl font-black text-slate-800">{stats.totalQuizzes}</span>
+            <span className="text-xs text-slate-500 font-semibold mt-1">Kuis Diselesaikan</span>
           </div>
 
-          <div className="p-6 rounded-2xl glass-panel border border-white/5 flex flex-col items-center justify-center text-center">
-            <Star className="h-8 w-8 text-amber-400 mb-3 animate-pulse" />
-            <span className="text-3xl font-extrabold text-white">{stats.avgRating > 0 ? stats.avgRating : '-'} <span className="text-xs text-slate-400">/ 5</span></span>
-            <span className="text-xs text-slate-400 font-medium mt-1">Rating Aplikasi ({stats.ratingsCount})</span>
+          <div className="p-6 rounded-2xl glass-panel border border-slate-100 flex flex-col items-center justify-center text-center">
+            <div className="p-3 bg-rose-50 rounded-xl mb-3">
+              <Star className="h-6 w-6 text-rose-500 fill-rose-500" />
+            </div>
+            <span className="text-3xl font-black text-slate-800">{stats.avgRating > 0 ? stats.avgRating : '-'} <span className="text-xs text-slate-400">/ 5</span></span>
+            <span className="text-xs text-slate-500 font-semibold mt-1">Rating Aplikasi ({stats.ratingsCount})</span>
           </div>
         </div>
       </section>
@@ -229,49 +238,49 @@ export default function Home() {
       {/* ================= DYNAMIC FEATURES GRIDS ================= */}
       <section className="grid grid-cols-1 md:grid-cols-3 gap-8">
         {/* Kamus Card */}
-        <div className="p-8 rounded-3xl glass-panel glass-panel-hover border border-white/5 flex flex-col justify-between">
+        <div className="p-8 rounded-3xl glass-panel glass-panel-hover border border-slate-100 flex flex-col justify-between">
           <div className="space-y-4">
-            <div className="p-3 bg-ocean-500/10 border border-ocean-500/20 w-fit rounded-2xl">
-              <Search className="h-6 w-6 text-ocean-500" />
+            <div className="p-3 bg-sky-50 border border-sky-100 w-fit rounded-2xl">
+              <Search className="h-6 w-6 text-sky-600" />
             </div>
-            <h3 className="text-xl font-bold text-white">Kamus Bilingual Cerdas</h3>
-            <p className="text-sm text-slate-400 leading-relaxed">
+            <h3 className="text-lg font-bold text-slate-900">Kamus Bilingual Cerdas</h3>
+            <p className="text-sm text-slate-500 leading-relaxed font-medium">
               Cari kosakata bahasa Indonesia ke daerah (Ternate & Sula) atau sebaliknya dengan hasil instan terlengkap (arti, kelas kata, dialek, dan contoh kalimat).
             </p>
           </div>
-          <Link href="/kamus" className="mt-6 text-sm font-bold text-ocean-500 hover:text-ocean-400 flex items-center space-x-1">
+          <Link href="/kamus" className="mt-6 text-xs font-bold text-sky-600 hover:text-sky-700 flex items-center space-x-1 uppercase tracking-wider">
             <span>Buka Kamus Digital →</span>
           </Link>
         </div>
 
         {/* Chatbot Card */}
-        <div className="p-8 rounded-3xl glass-panel glass-panel-hover border border-white/5 flex flex-col justify-between">
+        <div className="p-8 rounded-3xl glass-panel glass-panel-hover border border-slate-100 flex flex-col justify-between">
           <div className="space-y-4">
-            <div className="p-3 bg-gold-500/10 border border-gold-500/20 w-fit rounded-2xl">
-              <MessageSquare className="h-6 w-6 text-gold-500" />
+            <div className="p-3 bg-amber-50 border border-amber-100 w-fit rounded-2xl">
+              <MessageSquare className="h-6 w-6 text-amber-600" />
             </div>
-            <h3 className="text-xl font-bold text-white">Asisten Virtual Salama</h3>
-            <p className="text-sm text-slate-400 leading-relaxed">
+            <h3 className="text-lg font-bold text-slate-900">Asisten Virtual Salama</h3>
+            <p className="text-sm text-slate-500 leading-relaxed font-medium">
               Ngobrol dengan AI cerdas kami yang ditenagai Google Gemini untuk menggali konteks kalimat, penjelasan budaya daerah, dan dialog sehari-hari.
             </p>
           </div>
-          <Link href="/chatbot" className="mt-6 text-sm font-bold text-gold-500 hover:text-gold-400 flex items-center space-x-1">
+          <Link href="/chatbot" className="mt-6 text-xs font-bold text-amber-600 hover:text-amber-750 flex items-center space-x-1 uppercase tracking-wider">
             <span>Tanya Asisten AI →</span>
           </Link>
         </div>
 
         {/* Kuis Card */}
-        <div className="p-8 rounded-3xl glass-panel glass-panel-hover border border-white/5 flex flex-col justify-between">
+        <div className="p-8 rounded-3xl glass-panel glass-panel-hover border border-slate-100 flex flex-col justify-between">
           <div className="space-y-4">
-            <div className="p-3 bg-emerald-500/10 border border-emerald-500/20 w-fit rounded-2xl">
-              <Award className="h-6 w-6 text-emerald-500" />
+            <div className="p-3 bg-emerald-50 border border-emerald-100 w-fit rounded-2xl">
+              <Award className="h-6 w-6 text-emerald-600" />
             </div>
-            <h3 className="text-xl font-bold text-white">Kuis Pilihan Ganda</h3>
-            <p className="text-sm text-slate-400 leading-relaxed">
+            <h3 className="text-lg font-bold text-slate-900">Kuis Pilihan Ganda</h3>
+            <p className="text-sm text-slate-500 leading-relaxed font-medium">
               Uji pemahaman bahasa daerah Anda melalui permainan interaktif 10 soal dengan timer 15 detik. Belajar bahasa daerah jadi lebih seru dan kompetitif!
             </p>
           </div>
-          <Link href="/kuis" className="mt-6 text-sm font-bold text-emerald-500 hover:text-emerald-400 flex items-center space-x-1">
+          <Link href="/kuis" className="mt-6 text-xs font-bold text-emerald-600 hover:text-emerald-700 flex items-center space-x-1 uppercase tracking-wider">
             <span>Mainkan Kuis Sekarang →</span>
           </Link>
         </div>
@@ -281,30 +290,30 @@ export default function Home() {
       <section className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         
         {/* Form Rating */}
-        <div className="p-8 rounded-3xl glass-panel border border-white/10 lg:col-span-1 space-y-6">
+        <div className="p-8 rounded-3xl glass-panel border border-slate-200/70 lg:col-span-1 space-y-6">
           <div className="space-y-2">
-            <h3 className="text-xl font-bold text-white">Beri Rating Aplikasi</h3>
-            <p className="text-xs text-slate-400">
+            <h3 className="text-lg font-bold text-slate-900">Beri Rating Aplikasi</h3>
+            <p className="text-xs text-slate-500 font-medium">
               Ulasan Anda sangat berharga untuk pengembangan Salama AI yang lebih baik dan pelestarian bahasa daerah Maluku Utara.
             </p>
           </div>
 
           <form onSubmit={handleRatingSubmit} className="space-y-4">
             <div className="space-y-2">
-              <label className="text-xs font-semibold text-slate-300 block">Pilih Bintang:</label>
+              <label className="text-xs font-bold text-slate-700 block">Pilih Bintang:</label>
               <div className="flex space-x-2">
                 {[1, 2, 3, 4, 5].map((star) => (
                   <button
                     type="button"
                     key={star}
                     onClick={() => setRatingInput(prev => ({ ...prev, bintang: star }))}
-                    className="p-1 hover:scale-125 transition-transform duration-200 focus:outline-none"
+                    className="p-1 hover:scale-125 transition-transform duration-205 focus:outline-none"
                   >
                     <Star 
                       className={`h-7 w-7 ${
                         star <= ratingInput.bintang 
-                          ? 'text-gold-500 fill-gold-500' 
-                          : 'text-slate-600'
+                          ? 'text-amber-500 fill-amber-500' 
+                          : 'text-slate-300'
                       }`} 
                     />
                   </button>
@@ -313,35 +322,35 @@ export default function Home() {
             </div>
 
             <div className="space-y-2">
-              <label className="text-xs font-semibold text-slate-300 block">Ulasan Anda (Maks 280 karakter):</label>
+              <label className="text-xs font-bold text-slate-700 block">Ulasan Anda (Maks 280 karakter):</label>
               <textarea
                 value={ratingInput.komentar}
                 onChange={(e) => setRatingInput(prev => ({ ...prev, komentar: e.target.value.slice(0, 280) }))}
                 rows={4}
                 placeholder="Tulis ulasan, kritik, saran, atau pujian Anda di sini..."
-                className="w-full bg-slate-950/60 border border-white/10 rounded-xl px-4 py-3 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-gold-500 transition-all duration-300 resize-none"
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-amber-500 transition-all duration-300 resize-none font-medium"
               />
-              <span className="text-[10px] text-slate-500 block text-right">
+              <span className="text-[10px] text-slate-400 block text-right font-semibold">
                 {ratingInput.komentar.length} / 280 karakter
               </span>
             </div>
 
             {successMsg && (
-              <p className="text-xs font-semibold text-emerald-500 bg-emerald-500/10 p-3 rounded-lg flex items-center">
+              <p className="text-xs font-bold text-emerald-600 bg-emerald-50 border border-emerald-100 p-3 rounded-lg flex items-center">
                 <ShieldCheck className="h-4 w-4 mr-1.5 flex-shrink-0" /> {successMsg}
               </p>
             )}
 
             {errorMsg && (
-              <p className="text-xs font-semibold text-rose-500 bg-rose-500/10 p-3 rounded-lg flex items-center">
-                <Heart className="h-4 w-4 mr-1.5 flex-shrink-0" /> {errorMsg}
+              <p className="text-xs font-bold text-rose-600 bg-rose-50 border border-rose-100 p-3 rounded-lg flex items-center">
+                <Heart className="h-4 w-4 mr-1.5 flex-shrink-0 fill-rose-100" /> {errorMsg}
               </p>
             )}
 
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full py-3 bg-gradient-to-r from-gold-500 to-gold-600 hover:from-gold-400 hover:to-gold-500 text-slate-950 font-bold rounded-xl transition-all duration-300 flex items-center justify-center space-x-2 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full py-3 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl transition-all duration-300 flex items-center justify-center space-x-2 text-sm disabled:opacity-50 disabled:cursor-not-allowed shadow-md shadow-slate-900/10"
             >
               {isSubmitting ? (
                 <span className="animate-pulse">Mengirim...</span>
@@ -356,32 +365,32 @@ export default function Home() {
         </div>
 
         {/* Feed Ulasan */}
-        <div className="p-8 rounded-3xl glass-panel border border-white/10 lg:col-span-2 space-y-6">
-          <div className="flex justify-between items-center border-b border-white/5 pb-4">
-            <h3 className="text-xl font-bold text-white">Ulasan Pengguna Terbaru</h3>
-            <span className="text-xs font-semibold text-slate-400 bg-white/5 border border-white/10 px-3 py-1 rounded-full">
+        <div className="p-8 rounded-3xl glass-panel border border-slate-200/70 lg:col-span-2 space-y-6">
+          <div className="flex justify-between items-center border-b border-slate-100 pb-4">
+            <h3 className="text-lg font-bold text-slate-900">Ulasan Pengguna Terbaru</h3>
+            <span className="text-[10px] font-bold text-slate-500 bg-slate-100 border border-slate-200/60 px-3 py-1 rounded-full uppercase tracking-wider">
               Komentar Terverifikasi
             </span>
           </div>
 
           <div className="space-y-4 max-h-[350px] overflow-y-auto pr-2">
             {ratings.length === 0 ? (
-              <p className="text-sm text-slate-400 text-center py-10">Belum ada ulasan. Jadilah yang pertama memberikan review!</p>
+              <p className="text-sm text-slate-400 text-center py-10 font-medium">Belum ada ulasan. Jadilah yang pertama memberikan review!</p>
             ) : (
               ratings.map((rate, i) => (
-                <div key={rate.id || i} className="p-4 rounded-xl bg-white/5 border border-white/5 space-y-2 hover:border-white/10 transition-colors duration-200">
+                <div key={rate.id || i} className="p-4 rounded-xl bg-slate-50/50 border border-slate-150 space-y-2 hover:border-slate-350 hover:bg-slate-50 transition-all duration-200">
                   <div className="flex justify-between items-center">
                     <div className="flex space-x-1">
                       {Array.from({ length: 5 }).map((_, idx) => (
                         <Star 
                           key={idx} 
-                          className={`h-4 w-4 ${
-                            idx < rate.bintang ? 'text-gold-500 fill-gold-500' : 'text-slate-700'
+                          className={`h-3.5 w-3.5 ${
+                            idx < rate.bintang ? 'text-amber-500 fill-amber-500' : 'text-slate-250'
                           }`} 
                         />
                       ))}
                     </div>
-                    <span className="text-[10px] text-slate-500">
+                    <span className="text-[10px] text-slate-400 font-semibold">
                       {new Date(rate.created_at).toLocaleDateString('id-ID', {
                         day: 'numeric',
                         month: 'short',
@@ -389,7 +398,7 @@ export default function Home() {
                       })}
                     </span>
                   </div>
-                  <p className="text-sm text-slate-300 italic leading-relaxed">
+                  <p className="text-sm text-slate-650 italic leading-relaxed font-medium">
                     "{rate.komentar}"
                   </p>
                 </div>

@@ -271,22 +271,35 @@ export const db = {
     try {
       const { data: dbWords, error } = await supabase
         .from('kata')
-        .select('kata, bahasa');
+        .select('id, kata, bahasa');
       
       if (error) {
         console.error("[Salama AI] Gagal fetch data kata untuk sync:", error);
         return;
       }
       
-      const existing = new Set(dbWords.map(w => `${w.kata.toLowerCase()}_${w.bahasa.toLowerCase()}`));
-      const missing = seedWords.filter(w => !existing.has(`${w.kata.toLowerCase()}_${w.bahasa.toLowerCase()}`));
+      const existingKeys = new Set(dbWords.map(w => `${w.kata.toLowerCase()}_${w.bahasa.toLowerCase()}`));
+      const missing = seedWords.filter(w => !existingKeys.has(`${w.kata.toLowerCase()}_${w.bahasa.toLowerCase()}`));
       
       if (missing.length > 0) {
-        console.log(`[Salama AI] Menyinkronkan ${missing.length} kata baru ke Supabase...`);
-        const cleaned = missing.map(({ id, ...rest }) => rest);
+        const existingIds = dbWords.map(w => w.id);
+        const maxId = existingIds.length > 0 ? Math.max(...existingIds) : 0;
+        
+        let currentId = maxId + 1;
+        const preparedWords = missing.map(w => {
+          const newWord = {
+            ...w,
+            id: currentId
+          };
+          currentId++;
+          return newWord;
+        });
+
+        console.log(`[Salama AI] Menyinkronkan ${missing.length} kata baru ke Supabase dengan ID berkisar dari ${maxId + 1} hingga ${currentId - 1}...`);
+        
         const { error: insertErr } = await supabase
           .from('kata')
-          .insert(cleaned);
+          .insert(preparedWords);
         
         if (insertErr) {
           console.error("[Salama AI] Gagal menyisipkan kata baru:", insertErr);

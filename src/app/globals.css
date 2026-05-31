@@ -1,17 +1,17 @@
 @import "tailwindcss";
 
 @theme {
-  /* Elegant, handcrafted modern palette — slate background with gold and blue details */
-  --color-ocean-950: #090d16;
-  --color-ocean-900: #0f172a;
-  --color-ocean-800: #1e293b;
-  --color-ocean-700: #334155;
-  --color-ocean-600: #2563eb;
-  --color-ocean-500: #3b82f6;
-  --color-gold-500: #d97706;
-  --color-gold-600: #b45309;
-  --color-gold-400: #f59e0b;
-  --color-gold-300: #fcd34d;
+  /* Elegant, handcrafted modern light palette — clean paper background with warm gold and sky blue details */
+  --color-ocean-950: #f8fafc;
+  --color-ocean-900: #f1f5f9;
+  --color-ocean-800: #e2e8f0;
+  --color-ocean-700: #cbd5e1;
+  --color-ocean-600: #0284c7;
+  --color-ocean-500: #0ea5e9;
+  --color-gold-500: #ca8a04;
+  --color-gold-600: #a16207;
+  --color-gold-400: #eab308;
+  --color-gold-300: #fde047;
 
   --animate-fade-in-up: fadeInUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
@@ -28,73 +28,118 @@
 }
 
 :root {
-  --background: #090d16;
-  --foreground: #f1f5f9;
+  --background: #f8fafc;
+  --foreground: #0f172a;
 }
 
 body {
   background-color: var(--background);
   color: var(--foreground);
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-family: 'Outfit', 'Inter', system-ui, -apple-system, sans-serif;
   overflow-x: hidden;
   background-attachment: fixed;
 }
 
-/* Premium Flat Card Surface (Clean and Professional) */
+/* Premium Light Card Surface (Clean Dribbble and Professional style) */
 .glass-panel {
-  background: #111827;
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+  background: #ffffff;
+  border: 1px solid rgba(15, 23, 42, 0.06);
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.02), 0 4px 12px 0 rgba(15, 23, 42, 0.03);
 }
 
 .glass-panel-hover {
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .glass-panel-hover:hover {
-  background: #151d30;
-  border-color: rgba(245, 158, 11, 0.2);
-  transform: translateY(-1px);
+  background: #ffffff;
+  border-color: rgba(202, 138, 4, 0.3);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 24px -4px rgba(15, 23, 42, 0.06), 0 4px 12px -2px rgba(15, 23, 42, 0.03);
 }
 
 .glass-card-gold {
-  background: rgba(217, 119, 6, 0.05);
-  border: 1px solid rgba(217, 119, 6, 0.15);
+  background: #fefce8;
+  border: 1px solid #fef08a;
 }
 
 .glass-card-ocean {
-  background: rgba(59, 130, 246, 0.05);
-  border: 1px solid rgba(59, 130, 246, 0.15);
+  background: #f0f9ff;
+  border: 1px solid #bae6fd;
 }
 
 /* Scrollbars */
 ::-webkit-scrollbar {
-  width: 5px;
-  height: 5px;
+  width: 6px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #090d16;
+  background: #f8fafc;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.1);
+  background: #cbd5e1;
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.25);
+  background: #94a3b8;
 }
 
 /* Typography Gradient */
 .text-gradient-gold {
-  color: #f59e0b;
+  color: #ca8a04;
+  background: linear-gradient(135deg, #a16207, #ca8a04);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 .text-gradient-ocean {
-  color: #3b82f6;
+  color: #0284c7;
+  background: linear-gradient(135deg, #0369a1, #0ea5e9);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 .bg-gradient-premium {
-  background: #0f172a;
+  background: #ffffff;
+}
+
+/* Real-time Theme Overrides for flawless light-theme transition across all sub-pages */
+.text-white, .text-slate-100, .text-slate-200, .text-slate-300 {
+  color: #0f172a !important;
+}
+
+.text-slate-400, .text-slate-450, .text-slate-500 {
+  color: #475569 !important;
+}
+
+.bg-slate-950, .bg-slate-950\/80, .bg-slate-950\/60, .bg-slate-950\/40, .bg-slate-900, .bg-white\/5, .bg-white\/8, .bg-white\/10, .bg-white\/15 {
+  background-color: #f8fafc !important;
+  border-color: rgba(15, 23, 42, 0.08) !important;
+  color: #0f172a !important;
+}
+
+/* Specific component overrides for premium light feel */
+input[type="text"], input[type="password"], textarea, select {
+  background-color: #ffffff !important;
+  border: 1px solid rgba(15, 23, 42, 0.12) !important;
+  color: #0f172a !important;
+}
+
+input[type="text"]:focus, input[type="password"]:focus, textarea:focus, select:focus {
+  border-color: #ca8a04 !important;
+  box-shadow: 0 0 0 1px rgba(202, 138, 4, 0.2) !important;
+}
+
+/* Option tags inside select dropdowns */
+option {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+}
+
+/* Modal backgrounds */
+.bg-slate-950\/80.backdrop-blur-sm, .bg-slate-950\/80 {
+  background-color: rgba(15, 23, 42, 0.3) !important;
 }

@@ -33,7 +33,7 @@ export default function RootLayout({ children }) {
       lang="id"
       className={`${outfit.variable} ${inter.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col bg-ocean-950 text-slate-100 font-sans selection:bg-gold-500/30 selection:text-white">
+      <body className="min-h-full flex flex-col bg-[#f8fafc] text-slate-900 font-sans selection:bg-gold-500/25 selection:text-slate-950">
         <Header />
         <main className="flex-grow pt-24 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8">
           {children}

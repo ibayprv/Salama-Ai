@@ -30,7 +30,7 @@ export default function Header() {
   return (
     <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
       scrolled
-        ? 'py-2.5 bg-ocean-950/90 backdrop-blur-lg border-b border-white/5 shadow-lg'
+        ? 'py-2.5 bg-white/95 backdrop-blur-md border-b border-slate-200/60 shadow-sm'
         : 'py-4 bg-transparent'
     }`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -49,20 +49,20 @@ export default function Header() {
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`flex items-center space-x-1.5 px-3 py-2 rounded-lg text-xs font-semibold tracking-wide transition-all duration-200 ${
+                  className={`flex items-center space-x-1.5 px-3 py-2 rounded-lg text-xs font-bold tracking-wide transition-all duration-200 ${
                     isActive
-                      ? 'text-white bg-white/8 border border-white/10'
-                      : 'text-slate-400 hover:text-white hover:bg-white/5 border border-transparent'
+                      ? 'text-slate-900 bg-slate-100 border border-slate-200/80 shadow-xs'
+                      : 'text-slate-600 hover:text-slate-950 hover:bg-slate-50 border border-transparent'
                   }`}
                 >
-                  <Icon className={`h-4 w-4 ${isActive ? 'text-gold-500' : ''}`} />
+                  <Icon className={`h-4 w-4 ${isActive ? 'text-gold-600' : 'text-slate-450'}`} />
                   <span>{item.name}</span>
                 </Link>
               );
             })}
             <Link
               href="/kuis"
-              className="ml-3 px-5 py-2 bg-gold-500 hover:bg-gold-400 text-slate-950 font-bold text-xs uppercase tracking-wider rounded-lg transition-colors duration-200"
+              className="ml-3 px-5 py-2.5 bg-gold-600 hover:bg-gold-500 text-white font-bold text-xs uppercase tracking-wider rounded-xl transition-all duration-200 shadow-md shadow-gold-500/10 hover:shadow-lg"
             >
               Mulai Kuis
             </Link>
@@ -72,7 +72,7 @@ export default function Header() {
           <div className="md:hidden">
             <button
               onClick={() => setIsOpen(!isOpen)}
-              className="p-2 rounded-lg bg-white/5 border border-white/10 text-slate-300 hover:text-white focus:outline-none transition-colors"
+              className="p-2 rounded-lg bg-slate-50 border border-slate-200 text-slate-600 hover:text-slate-950 focus:outline-none transition-colors"
             >
               {isOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </button>
@@ -84,7 +84,7 @@ export default function Header() {
       <div className={`md:hidden transition-all duration-350 overflow-hidden ${
         isOpen ? 'max-h-screen opacity-100' : 'max-h-0 opacity-0'
       }`}>
-        <div className="px-3 pt-2 pb-4 space-y-1 bg-ocean-950/95 backdrop-blur-xl border-t border-white/5">
+        <div className="px-3 pt-2 pb-4 space-y-1 bg-white border-t border-slate-100 shadow-xl">
           {navItems.map((item) => {
             const Icon = item.icon;
             const isActive = pathname === item.href;
@@ -93,13 +93,13 @@ export default function Header() {
                 key={item.href}
                 href={item.href}
                 onClick={() => setIsOpen(false)}
-                className={`flex items-center space-x-3 px-4 py-3 rounded-lg text-base font-medium transition-colors duration-200 ${
+                className={`flex items-center space-x-3 px-4 py-3 rounded-lg text-base font-bold transition-colors duration-200 ${
                   isActive
-                    ? 'text-white bg-white/5 border border-white/10'
-                    : 'text-slate-400 hover:text-white hover:bg-white/5'
+                    ? 'text-slate-950 bg-slate-50 border border-slate-200/50'
+                    : 'text-slate-600 hover:text-slate-950 hover:bg-slate-50'
                 }`}
               >
-                <Icon className={`h-5 w-5 ${isActive ? 'text-gold-500' : ''}`} />
+                <Icon className={`h-5 w-5 ${isActive ? 'text-gold-600' : 'text-slate-400'}`} />
                 <span>{item.name}</span>
               </Link>
             );
@@ -108,7 +108,7 @@ export default function Header() {
             <Link
               href="/kuis"
               onClick={() => setIsOpen(false)}
-              className="block w-full py-3 bg-gold-500 hover:bg-gold-400 text-slate-950 text-center font-bold uppercase tracking-wider rounded-lg transition-colors duration-200"
+              className="block w-full py-3 bg-gold-600 hover:bg-gold-500 text-white text-center font-bold uppercase tracking-wider rounded-lg transition-colors duration-200 shadow-md"
             >
               Mulai Kuis
             </Link>
