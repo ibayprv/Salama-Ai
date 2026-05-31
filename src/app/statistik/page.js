@@ -6,6 +6,8 @@ import supabase, { db } from '@/lib/supabase';
 
 export default function Statistik() {
   const [loading, setLoading] = useState(true);
+  const [timeRange, setTimeRange] = useState('7_days');
+  const [rawVisitData, setRawVisitData] = useState(null);
   const [data, setData] = useState({
     todayVisitors: 0,
     totalVisitors: 0,
@@ -22,12 +24,97 @@ export default function Statistik() {
     recentComments: []
   });
 
+  const chartData = React.useMemo(() => {
+    if (!rawVisitData) return [];
+    const history = [...(rawVisitData.history || [])];
+    const todayStr = new Date().toISOString().split('T')[0];
+    
+    // Pastikan data kunjungan hari ini ter-update di history
+    const todayIndex = history.findIndex(p => p.tanggal === todayStr);
+    if (todayIndex !== -1) {
+      history[todayIndex] = { ...history[todayIndex], jumlah: rawVisitData.today };
+    } else {
+      history.push({ tanggal: todayStr, jumlah: rawVisitData.today });
+    }
+
+    const today = new Date();
+    let result = [];
+
+    if (timeRange === '7_days' || timeRange === '14_days' || timeRange === '30_days') {
+      const days = timeRange === '7_days' ? 7 : timeRange === '14_days' ? 14 : 30;
+      for (let i = days - 1; i >= 0; i--) {
+        const d = new Date(today);
+        d.setDate(today.getDate() - i);
+        const dateStr = d.toISOString().split('T')[0];
+        
+        const dbRec = history.find(p => p.tanggal === dateStr);
+        const count = dbRec ? dbRec.jumlah : 0;
+        
+        let label = '';
+        if (days === 7) {
+          label = d.toLocaleDateString('id-ID', { weekday: 'short' });
+        } else {
+          label = d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' });
+        }
+
+        result.push({
+          label,
+          date: dateStr,
+          count
+        });
+      }
+    } else if (timeRange === 'this_year') {
+      const currentYear = today.getFullYear();
+      const monthNames = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Ags", "Sep", "Okt", "Nov", "Des"];
+      
+      for (let m = 0; m < 12; m++) {
+        const monthPrefix = `${currentYear}-${String(m + 1).padStart(2, '0')}`;
+        const count = history
+          .filter(p => p.tanggal.startsWith(monthPrefix))
+          .reduce((sum, curr) => sum + curr.jumlah, 0);
+        
+        result.push({
+          label: monthNames[m],
+          date: monthPrefix,
+          count
+        });
+      }
+    } else if (timeRange === 'all_time') {
+      const yearsSet = new Set();
+      history.forEach(p => {
+        const year = p.tanggal.split('-')[0];
+        yearsSet.add(year);
+      });
+      yearsSet.add(String(today.getFullYear()));
+      
+      const sortedYears = Array.from(yearsSet).sort();
+      sortedYears.forEach(year => {
+        const count = history
+          .filter(p => p.tanggal.startsWith(year))
+          .reduce((sum, curr) => sum + curr.jumlah, 0);
+        
+        result.push({
+          label: year,
+          date: year,
+          count
+        });
+      });
+    }
+
+    return result;
+  }, [timeRange, rawVisitData]);
+
+  const maxVisits = chartData.length > 0 
+    ? Math.max(...chartData.map(h => h.count))
+    : 10;
+
   useEffect(() => {
     const fetchStats = async (showLoading = true) => {
       if (showLoading) setLoading(true);
       try {
         // 1. Visit Counter
         const visitData = await db.recordVisit();
+        setRawVisitData(visitData);
         
         // 2. Words, Likes, and Top Words
         const wordsRes = await db.getWords();
@@ -74,26 +161,6 @@ export default function Statistik() {
           avgRating = Number((sum / ratingsData.length).toFixed(1));
         }
 
-        // Generate actual history (last 7 days)
-        let historyList = [];
-        const today = new Date();
-        
-        for (let i = 6; i >= 0; i--) {
-          const d = new Date(today);
-          d.setDate(today.getDate() - i);
-          const dateStr = d.toISOString().split('T')[0];
-          
-          // look in db history
-          const dbRec = visitData.history ? visitData.history.find(p => p.tanggal === dateStr) : null;
-          const count = dbRec ? dbRec.jumlah : 0;
-          
-          historyList.push({
-            label: d.toLocaleDateString('id-ID', { weekday: 'short' }),
-            date: dateStr,
-            count: i === 0 ? visitData.today : count
-          });
-        }
-
         setData({
           todayVisitors: visitData.today,
           totalVisitors: visitData.total,
@@ -103,7 +170,7 @@ export default function Statistik() {
           avgRating: avgRating,
           ratingsCount: ratingsData.length,
           ratingsList: ratingsData,
-          history: historyList,
+          history: [], // We use chartData dynamically now
           totalLikes,
           totalComments,
           topLikedWords,
@@ -144,10 +211,6 @@ export default function Statistik() {
       }
     };
   }, []);
-
-  const maxVisits = data.history.length > 0 
-    ? Math.max(...data.history.map(h => h.count))
-    : 10;
 
   if (loading) {
     return (
@@ -263,18 +326,31 @@ export default function Statistik() {
       {/* Main Charts Row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         
-        {/* CHART 1: 7-Day Visitor Graph */}
+        {/* CHART 1: Visitor Graph */}
         <div className="p-6 sm:p-8 rounded-3xl glass-panel border border-white/10 space-y-6">
-          <div className="flex justify-between items-center border-b border-white/5 pb-4">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 border-b border-white/5 pb-4">
             <h3 className="text-lg font-bold text-white flex items-center space-x-2">
               <TrendingUp className="h-5 w-5 text-gold-500" />
-              <span>Grafik Kunjungan Siswa (7 Hari Terakhir)</span>
+              <span>Grafik Kunjungan</span>
             </h3>
-            <span className="text-[10px] text-slate-450 bg-white/5 border border-white/10 px-2 py-0.5 rounded font-bold uppercase">Real-Time</span>
+            <div className="flex items-center space-x-2 w-full sm:w-auto">
+              <select
+                value={timeRange}
+                onChange={(e) => setTimeRange(e.target.value)}
+                className="bg-slate-900 border border-white/10 rounded-lg px-2.5 py-1 text-xs font-semibold text-slate-350 focus:outline-none focus:border-gold-500 cursor-pointer"
+              >
+                <option value="7_days">7 Hari Terakhir</option>
+                <option value="14_days">14 Hari Terakhir</option>
+                <option value="30_days">30 Hari Terakhir</option>
+                <option value="this_year">Tahun Ini (Bulanan)</option>
+                <option value="all_time">Semua Waktu (Tahunan)</option>
+              </select>
+              <span className="text-[10px] text-slate-400 bg-white/5 border border-white/10 px-2 py-1 rounded font-bold uppercase whitespace-nowrap">Real-Time</span>
+            </div>
           </div>
 
-          <div className="h-60 flex items-end justify-between gap-2 pt-6 px-2">
-            {data.history.map((hist, index) => {
+          <div className="h-60 flex items-end justify-between gap-1 pt-6 px-1">
+            {chartData.map((hist, index) => {
               const heightPct = maxVisits > 0 ? (hist.count / maxVisits) * 100 : 0;
               return (
                 <div key={index} className="flex-grow flex flex-col items-center group relative cursor-pointer">
@@ -283,11 +359,17 @@ export default function Statistik() {
                   </span>
                   
                   <div 
-                    className="w-full sm:w-8 rounded-t-lg bg-gradient-to-t from-ocean-800 to-ocean-500 group-hover:from-gold-500 group-hover:to-gold-400 transition-all duration-500 border border-white/5 group-hover:scale-105 shadow-gold-500/10"
+                    className={`w-full rounded-t-md bg-gradient-to-t from-ocean-800 to-ocean-500 group-hover:from-gold-500 group-hover:to-gold-400 transition-all duration-500 border border-white/5 group-hover:scale-105 shadow-gold-500/10 ${
+                      timeRange === '7_days' ? 'max-w-[32px]' : 
+                      timeRange === '14_days' ? 'max-w-[20px]' : 
+                      timeRange === '30_days' ? 'max-w-[12px]' : 'max-w-[40px]'
+                    }`}
                     style={{ height: `${Math.max(heightPct, 3)}%` }}
                   />
                   
-                  <span className="text-[10px] text-slate-500 font-bold mt-2 tracking-wider group-hover:text-white uppercase transition-colors">
+                  <span className={`text-[9px] text-slate-500 font-bold mt-2 tracking-wider group-hover:text-white uppercase transition-colors text-center whitespace-nowrap overflow-hidden text-ellipsis ${
+                    timeRange === '30_days' ? 'hidden sm:block max-w-[35px]' : 'max-w-[45px]'
+                  }`}>
                     {hist.label}
                   </span>
                 </div>

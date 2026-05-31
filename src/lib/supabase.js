@@ -266,6 +266,39 @@ export const localDb = {
 export const db = {
   isFallback: !isSupabaseConfigured,
   
+  async syncMissingWords() {
+    if (!isSupabaseConfigured) return;
+    try {
+      const { data: dbWords, error } = await supabase
+        .from('kata')
+        .select('kata, bahasa');
+      
+      if (error) {
+        console.error("[Salama AI] Gagal fetch data kata untuk sync:", error);
+        return;
+      }
+      
+      const existing = new Set(dbWords.map(w => `${w.kata.toLowerCase()}_${w.bahasa.toLowerCase()}`));
+      const missing = seedWords.filter(w => !existing.has(`${w.kata.toLowerCase()}_${w.bahasa.toLowerCase()}`));
+      
+      if (missing.length > 0) {
+        console.log(`[Salama AI] Menyinkronkan ${missing.length} kata baru ke Supabase...`);
+        const cleaned = missing.map(({ id, ...rest }) => rest);
+        const { error: insertErr } = await supabase
+          .from('kata')
+          .insert(cleaned);
+        
+        if (insertErr) {
+          console.error("[Salama AI] Gagal menyisipkan kata baru:", insertErr);
+        } else {
+          console.log(`[Salama AI] Berhasil menyinkronkan ${missing.length} kata.`);
+        }
+      }
+    } catch (e) {
+      console.error("[Salama AI] Error sync:", e);
+    }
+  },
+
   async getWords() {
     if (isSupabaseConfigured) {
       const { data, error } = await supabase
@@ -276,6 +309,11 @@ export const db = {
       
       if (!error) {
         if (data && data.length > 0) {
+          if (data.length < seedWords.length) {
+            setTimeout(() => {
+              this.syncMissingWords().catch(console.error);
+            }, 100);
+          }
           return { data, error };
         } else {
           // Auto-seed words if the table is empty
@@ -303,6 +341,13 @@ export const db = {
         .from('kata')
         .select('*')
         .order('id', { ascending: false });
+      if (!error && data) {
+        if (data.length < seedWords.length) {
+          setTimeout(() => {
+            this.syncMissingWords().catch(console.error);
+          }, 100);
+        }
+      }
       if (error) console.error("Supabase getAllWordsAdmin error:", error);
       return { data, error };
     }
