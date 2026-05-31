@@ -1,66 +1,19 @@
-<svg width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <defs>
-    <linearGradient id="bg" x1="0" y1="0" x2="120" y2="120" gradientUnits="userSpaceOnUse">
-      <stop offset="0%" stop-color="#0f172a"/>
-      <stop offset="100%" stop-color="#1e293b"/>
-    </linearGradient>
-    <linearGradient id="gold" x1="30" y1="30" x2="90" y2="95" gradientUnits="userSpaceOnUse">
-      <stop offset="0%" stop-color="#fcd34d"/>
-      <stop offset="50%" stop-color="#f59e0b"/>
-      <stop offset="100%" stop-color="#d97706"/>
-    </linearGradient>
-    <linearGradient id="blue" x1="40" y1="25" x2="80" y2="60" gradientUnits="userSpaceOnUse">
-      <stop offset="0%" stop-color="#60a5fa"/>
-      <stop offset="100%" stop-color="#3b82f6"/>
-    </linearGradient>
-  </defs>
-
-  <!-- Background -->
-  <rect width="120" height="120" rx="26" fill="url(#bg)"/>
-
-  <!-- Ambient glow -->
-  <ellipse cx="60" cy="68" rx="30" ry="18" fill="#f59e0b" opacity="0.06"/>
-
-  <!-- Book spine -->
-  <line x1="60" y1="38" x2="60" y2="82" stroke="url(#gold)" stroke-width="2.5" stroke-linecap="round"/>
-
-  <!-- Left page -->
-  <path d="M58 40 C58 40 34 38 30 42 C26 46 28 72 28 76 C28 80 54 78 58 78 L58 40Z" fill="url(#gold)" opacity="0.9" stroke="#fcd34d" stroke-width="0.5"/>
-
-  <!-- Right page -->
-  <path d="M62 40 C62 40 86 38 90 42 C94 46 92 72 92 76 C92 80 66 78 62 78 L62 40Z" fill="url(#gold)" opacity="0.75" stroke="#fcd34d" stroke-width="0.5"/>
-
-  <!-- Left page lines -->
-  <g opacity="0.3">
-    <line x1="35" y1="50" x2="54" y2="49" stroke="#1e293b" stroke-width="1.5" stroke-linecap="round"/>
-    <line x1="36" y1="56" x2="53" y2="55" stroke="#1e293b" stroke-width="1.5" stroke-linecap="round"/>
-    <line x1="37" y1="62" x2="52" y2="61" stroke="#1e293b" stroke-width="1.5" stroke-linecap="round"/>
-    <line x1="37" y1="68" x2="50" y2="67.5" stroke="#1e293b" stroke-width="1.5" stroke-linecap="round"/>
-  </g>
-
-  <!-- AI circuit pattern on right page -->
-  <g opacity="0.35">
-    <path d="M68 50 L76 50 L76 56 L82 56" stroke="#1e293b" stroke-width="1.2" fill="none" stroke-linecap="round"/>
-    <path d="M70 58 L78 58 L78 64 L84 64" stroke="#1e293b" stroke-width="1.2" fill="none" stroke-linecap="round"/>
-    <path d="M69 66 L74 66 L74 72" stroke="#1e293b" stroke-width="1.2" fill="none" stroke-linecap="round"/>
-    <circle cx="76" cy="50" r="1.5" fill="#1e293b"/>
-    <circle cx="82" cy="56" r="1.5" fill="#1e293b"/>
-    <circle cx="78" cy="58" r="1.5" fill="#1e293b"/>
-    <circle cx="74" cy="72" r="1.5" fill="#1e293b"/>
-  </g>
-
-  <!-- Decorative arc -->
-  <path d="M32 36 C32 22 88 22 88 36" stroke="url(#blue)" stroke-width="1.5" fill="none" opacity="0.4" stroke-linecap="round"/>
-
-  <!-- Sparkle dots -->
-  <circle cx="86" cy="28" r="2.5" fill="#60a5fa" opacity="0.6"/>
-  <circle cx="86" cy="28" r="1" fill="white" opacity="0.9"/>
-  <circle cx="38" cy="30" r="1.5" fill="#fcd34d" opacity="0.4"/>
-
-  <!-- AI Badge -->
-  <rect x="72" y="82" width="28" height="16" rx="8" fill="#f59e0b"/>
-  <text x="86" y="94" text-anchor="middle" fill="#0f172a" font-size="11" font-weight="800" font-family="Inter, system-ui, sans-serif" letter-spacing="0.5">AI</text>
-
-  <!-- Border -->
-  <rect width="120" height="120" rx="26" fill="none" stroke="white" stroke-width="1" opacity="0.06"/>
+<svg width="120" height="120" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Clean Rounded Base Tile (Premium Navy/Slate) -->
+  <rect width="100" height="100" rx="22" fill="#0f172a" />
+  
+  <!-- Open Book Vector -->
+  <path d="M25 70V30C25 30 38 27 50 32C62 27 75 30 75 30V70C75 70 62 67 50 72C38 67 25 70 25 70Z" fill="#ffffff" />
+  
+  <!-- Book spine/center division -->
+  <path d="M50 32V72" stroke="#0f172a" stroke-width="2" stroke-linecap="round" />
+  
+  <!-- Letter A on Left Page -->
+  <text x="37" y="54" fill="#0f172a" font-size="18" font-weight="bold" font-family="Georgia, serif" text-anchor="middle">A</text>
+  
+  <!-- Letter Z on Right Page -->
+  <text x="63" y="54" fill="#0f172a" font-size="18" font-weight="bold" font-family="Georgia, serif" text-anchor="middle">Z</text>
+  
+  <!-- Little yellow bookmark ribbon -->
+  <path d="M47 31V45L50 42L53 45V31H47Z" fill="#ca8a04" />
 </svg>
