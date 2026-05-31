@@ -40,6 +40,12 @@ export default function Admin() {
   // Search in Admin
   const [adminSearch, setAdminSearch] = useState('');
 
+  // Sort and Filter States
+  const [filterBahasa, setFilterBahasa] = useState('all');
+  const [filterKelasKata, setFilterKelasKata] = useState('all');
+  const [filterDialek, setFilterDialek] = useState('all');
+  const [sortBy, setSortBy] = useState('id_asc');
+
   useEffect(() => {
     // Check local session
     if (typeof window !== 'undefined') {
@@ -280,14 +286,40 @@ export default function Admin() {
   };
 
   // Filter words inside admin panel
-  const adminFilteredWords = words.filter(w => {
-    if (!adminSearch.trim()) return true;
-    const query = adminSearch.toLowerCase();
-    return (
-      w.kata.toLowerCase().includes(query) ||
-      w.arti.toLowerCase().includes(query)
-    );
-  });
+  const adminFilteredWords = words
+    .filter(w => {
+      // 1. Search Query
+      if (adminSearch.trim()) {
+        const query = adminSearch.toLowerCase();
+        const matchesQuery = w.kata.toLowerCase().includes(query) || w.arti.toLowerCase().includes(query);
+        if (!matchesQuery) return false;
+      }
+      // 2. Bahasa Filter
+      if (filterBahasa !== 'all') {
+        if (w.bahasa !== filterBahasa) return false;
+      }
+      // 3. Kelas Kata Filter
+      if (filterKelasKata !== 'all') {
+        if (w.kelas_kata !== filterKelasKata) return false;
+      }
+      // 4. Dialek Filter
+      if (filterDialek !== 'all') {
+        if (w.dialek !== filterDialek) return false;
+      }
+      return true;
+    })
+    .sort((a, b) => {
+      if (sortBy === 'id_asc') {
+        return a.id - b.id;
+      } else if (sortBy === 'id_desc') {
+        return b.id - a.id;
+      } else if (sortBy === 'kata_asc') {
+        return a.kata.localeCompare(b.kata);
+      } else if (sortBy === 'kata_desc') {
+        return b.kata.localeCompare(a.kata);
+      }
+      return 0;
+    });
 
   // ==================== AUTHENTICATED PANEL ====================
   if (isAuthenticated) {
@@ -388,6 +420,86 @@ export default function Admin() {
                   <span>Tambah Kata</span>
                 </button>
               </div>
+            </div>
+
+            {/* Filter and Sort Controls */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 bg-slate-950/20 p-4 border border-white/5 rounded-xl text-xs">
+              <div className="space-y-1.5">
+                <label className="font-semibold text-slate-400">Bahasa:</label>
+                <select
+                  value={filterBahasa}
+                  onChange={(e) => setFilterBahasa(e.target.value)}
+                  className="w-full bg-slate-950 border border-white/10 rounded-xl px-3 py-2 text-slate-200 focus:outline-none focus:border-gold-505 focus:border-gold-500 transition-all cursor-pointer"
+                >
+                  <option value="all">Semua Bahasa</option>
+                  <option value="ternate">Ternate</option>
+                  <option value="sula">Sula</option>
+                </select>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="font-semibold text-slate-400">Kelas Kata:</label>
+                <select
+                  value={filterKelasKata}
+                  onChange={(e) => setFilterKelasKata(e.target.value)}
+                  className="w-full bg-slate-950 border border-white/10 rounded-xl px-3 py-2 text-slate-200 focus:outline-none focus:border-gold-500 transition-all cursor-pointer"
+                >
+                  <option value="all">Semua Kelas</option>
+                  <option value="kata_benda">Kata Benda</option>
+                  <option value="kata_kerja">Kata Kerja</option>
+                  <option value="kata_sifat">Kata Sifat</option>
+                  <option value="kata_ganti">Kata Ganti</option>
+                  <option value="kata_bilangan">Kata Bilangan</option>
+                </select>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="font-semibold text-slate-400">Dialek:</label>
+                <select
+                  value={filterDialek}
+                  onChange={(e) => setFilterDialek(e.target.value)}
+                  className="w-full bg-slate-950 border border-white/10 rounded-xl px-3 py-2 text-slate-200 focus:outline-none focus:border-gold-500 transition-all cursor-pointer"
+                >
+                  <option value="all">Semua Dialek</option>
+                  <option value="melayu_ternate">Melayu Ternate</option>
+                  <option value="tidore">Tidore</option>
+                  <option value="sula_standar">Sula Standar</option>
+                </select>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="font-semibold text-slate-400">Urutkan:</label>
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value)}
+                  className="w-full bg-slate-950 border border-white/10 rounded-xl px-3 py-2 text-slate-200 focus:outline-none focus:border-gold-500 transition-all cursor-pointer"
+                >
+                  <option value="id_asc">ID Terkecil (Awal)</option>
+                  <option value="id_desc">ID Terbesar (Terbaru)</option>
+                  <option value="kata_asc">Abjad (A - Z)</option>
+                  <option value="kata_desc">Abjad (Z - A)</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Count Indicator */}
+            <div className="flex justify-between items-center text-xs text-slate-400 font-medium px-1">
+              <span>
+                Menampilkan <strong className="text-white">{adminFilteredWords.length}</strong> dari <strong className="text-white">{words.length}</strong> kosakata.
+              </span>
+              {(filterBahasa !== 'all' || filterKelasKata !== 'all' || filterDialek !== 'all' || adminSearch.trim() !== '') && (
+                <button
+                  onClick={() => {
+                    setFilterBahasa('all');
+                    setFilterKelasKata('all');
+                    setFilterDialek('all');
+                    setAdminSearch('');
+                  }}
+                  className="text-gold-400 hover:text-gold-300 font-bold transition-colors"
+                >
+                  Reset Filter
+                </button>
+              )}
             </div>
 
             {/* Table words */}

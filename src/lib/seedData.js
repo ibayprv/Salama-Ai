@@ -804,6 +804,686 @@ export const seedWords = [
     kelas_kata: "kata_sifat",
     contoh: "Bua neha done mana. (Buah ini rasanya manis.)",
     status: "aktif"
+  },
+  {
+    id: 81,
+    kata: "fika",
+    bahasa: "ternate",
+    dialek: "melayu_ternate",
+    arti: "abu",
+    kelas_kata: "kata_benda",
+    contoh: "Fika ena done lami. (Abu itu sudah dingin.)",
+    status: "aktif"
+  },
+  {
+    id: 82,
+    kata: "ake",
+    bahasa: "ternate",
+    dialek: "melayu_ternate",
+    arti: "air",
+    kelas_kata: "kata_benda",
+    contoh: "Ri done gaya ake. (Saya ingin minum air.)",
+    status: "aktif"
+  },
+  {
+    id: 83,
+    kata: "hate",
+    bahasa: "ternate",
+    dialek: "melayu_ternate",
+    arti: "akar",
+    kelas_kata: "kata_benda",
+    contoh: "Hate iko ena lamo. (Akar pohon itu besar.)",
+    status: "aktif"
+  },
+  {
+    id: 84,
+    kata: "uhi",
+    bahasa: "ternate",
+    dialek: "melayu_ternate",
+    arti: "mengalir",
+    kelas_kata: "kata_kerja",
+    contoh: "Aho uhi se ngolo. (Air mengalir ke laut.)",
+    status: "aktif"
+  },
+  {
+    id: 85,
+    kata: "ngofa",
+    bahasa: "ternate",
+    dialek: "melayu_ternate",
+    arti: "anak",
+    kelas_kata: "kata_benda",
+    contoh: "Ngofa cih ena tagi fola. (Anak kecil itu pergi ke rumah.)",
+    status: "aktif"
+  },
+  {
+    id: 86,
+    kata: "kore",
+    bahasa: "ternate",
+    dialek: "melayu_ternate",
+    arti: "angin",
+    kelas_kata: "kata_benda",
+    contoh: "Kore lami dahe kie. (Angin dingin di atas gunung.)",
+    status: "aktif"
+  },
+  {
+    id: 87,
+    kata: "kaso",
+    bahasa: "ternate",
+    dialek: "melayu_ternate",
+    arti: "anjing",
+    kelas_kata: "kata_benda",
+    contoh: "Kaso ena dahe gura. (Anjing itu ada di kebun.)",
+    status: "aktif"
+  },
+  {
+    id: 88,
+    kata: "koa",
+    bahasa: "ternate",
+    dialek: "melayu_ternate",
+    arti: "apa",
+    kelas_kata: "kata_ganti",
+    contoh: "Koa ngara mari? (Apa nama ini?)",
+    status: "aktif"
+  },
+  {
+    id: 89,
+    kata: "uku",
+    bahasa: "ternate",
+    dialek: "melayu_ternate",
+    arti: "api",
+    kelas_kata: "kata_benda",
+    contoh: "Uku kula dahe hafo. (Api panas di dalam tungku.)",
+    status: "aktif"
+  },
+  {
+    id: 90,
+    kata: "ruru",
+    bahasa: "ternate",
+    dialek: "melayu_ternate",
+    arti: "mengapung",
+    kelas_kata: "kata_kerja",
+    contoh: "Iko ruru dahe ngolo. (Kayu mengapung di atas laut.)",
+    status: "aktif"
+  },
+  {
+    id: 91,
+    kata: "nnyefo",
+    bahasa: "ternate",
+    dialek: "melayu_ternate",
+    arti: "asap",
+    kelas_kata: "kata_benda",
+    contoh: "Nnyefo dahe hafo fola. (Asap di tungku rumah.)",
+    status: "aktif"
+  },
+  {
+    id: 92,
+    kata: "kama-kama",
+    bahasa: "ternate",
+    dialek: "melayu_ternate",
+    arti: "awan",
+    kelas_kata: "kata_benda",
+    contoh: "Kama-kama jela rihu. (Awan itu sangat terang.)",
+    status: "aktif"
+  },
+  {
+    id: 93,
+    kata: "dokosa",
+    bahasa: "ternate",
+    dialek: "melayu_ternate",
+    arti: "bagaimana",
+    kelas_kata: "kata_ganti",
+    contoh: "Dokosa tagi pasa? (Bagaimana cara pergi ke pasar?)",
+    status: "aktif"
+  },
+  {
+    id: 94,
+    kata: "laha",
+    bahasa: "ternate",
+    dialek: "melayu_ternate",
+    arti: "baik",
+    kelas_kata: "kata_sifat",
+    contoh: "Una done laha. (Dia sangat baik.)",
+    status: "aktif"
+  },
+  {
+    id: 95,
+    kata: "osu",
+    bahasa: "ternate",
+    dialek: "melayu_ternate",
+    arti: "bakar",
+    kelas_kata: "kata_kerja",
+    contoh: "Ri done osu seho. (Saya mau membakar pohon aren.)",
+    status: "aktif"
+  },
+  {
+    id: 96,
+    kata: "goreho",
+    bahasa: "ternate",
+    dialek: "melayu_ternate",
+    arti: "balik",
+    kelas_kata: "kata_kerja",
+    contoh: "Una done goreho pasa. (Dia sudah balik dari pasar.)",
+    status: "aktif"
+  },
+  {
+    id: 97,
+    kata: "siloa rehe",
+    bahasa: "ternate",
+    dialek: "melayu_ternate",
+    arti: "baring",
+    kelas_kata: "kata_kerja",
+    contoh: "Mina siloa rehe fola. (Dia berbaring di rumah.)",
+    status: "aktif"
+  },
+  {
+    id: 98,
+    kata: "sung",
+    bahasa: "ternate",
+    dialek: "melayu_ternate",
+    arti: "baru",
+    kelas_kata: "kata_sifat",
+    contoh: "Fola sung ena maku. (Rumah baru itu indah.)",
+    status: "aktif"
+  },
+  {
+    id: 99,
+    kata: "busa",
+    bahasa: "ternate",
+    dialek: "melayu_ternate",
+    arti: "basah",
+    kelas_kata: "kata_sifat",
+    contoh: "Wonge ngolo done busa. (Pasir pantai itu basah.)",
+    status: "aktif"
+  },
+  {
+    id: 100,
+    kata: "mari",
+    bahasa: "ternate",
+    dialek: "melayu_ternate",
+    arti: "batu",
+    kelas_kata: "kata_benda",
+    contoh: "Mari lamo dahe kie. (Batu besar di atas gunung.)",
+    status: "aktif"
+  },
+  {
+    id: 101,
+    kata: "ngairao",
+    bahasa: "ternate",
+    dialek: "melayu_ternate",
+    arti: "beberapa",
+    kelas_kata: "kata_bilangan",
+    contoh: "Ngairao fola dahe pasa. (Beberapa rumah di pasar.)",
+    status: "aktif"
+  },
+  {
+    id: 102,
+    kata: "pela",
+    bahasa: "ternate",
+    dialek: "melayu_ternate",
+    arti: "membelah",
+    kelas_kata: "kata_kerja",
+    contoh: "Ri pela seho done gura. (Saya membelah aren di kebun.)",
+    status: "aktif"
+  },
+  {
+    id: 103,
+    kata: "gougou",
+    bahasa: "ternate",
+    dialek: "melayu_ternate",
+    arti: "benar",
+    kelas_kata: "kata_sifat",
+    contoh: "Bicara ena done gougou. (Bicara itu benar.)",
+    status: "aktif"
+  },
+  {
+    id: 104,
+    kata: "hobo",
+    bahasa: "ternate",
+    dialek: "melayu_ternate",
+    arti: "bengkak",
+    kelas_kata: "kata_sifat",
+    contoh: "Lako lakore hobo. (Matanya bengkak.)",
+    status: "aktif"
+  },
+  {
+    id: 105,
+    kata: "ngofa ma ici",
+    bahasa: "ternate",
+    dialek: "melayu_ternate",
+    arti: "benih",
+    kelas_kata: "kata_benda",
+    contoh: "Ngofa ma ici se gura. (Benih untuk kebun.)",
+    status: "aktif"
+  },
+  {
+    id: 106,
+    kata: "haso",
+    bahasa: "ternate",
+    dialek: "melayu_ternate",
+    arti: "berat",
+    kelas_kata: "kata_sifat",
+    contoh: "Mari lamo done haso. (Batu besar itu berat.)",
+    status: "aktif"
+  },
+  {
+    id: 107,
+    kata: "matobo",
+    bahasa: "ternate",
+    dialek: "melayu_ternate",
+    arti: "berenang",
+    kelas_kata: "kata_kerja",
+    contoh: "Ngofa done matobo ngolo. (Anak berenang di laut.)",
+    status: "aktif"
+  },
+  {
+    id: 108,
+    kata: "haka",
+    bahasa: "ternate",
+    dialek: "melayu_ternate",
+    arti: "beri",
+    kelas_kata: "kata_kerja",
+    contoh: "Haka ake se ri. (Beri air kepada saya.)",
+    status: "aktif"
+  },
+  {
+    id: 109,
+    kata: "haiwan",
+    bahasa: "ternate",
+    dialek: "melayu_ternate",
+    arti: "binatang",
+    kelas_kata: "kata_benda",
+    contoh: "Haiwan fari dahe banga. (Banyak binatang di hutan.)",
+    status: "aktif"
+  },
+  {
+    id: 110,
+    kata: "sofo",
+    bahasa: "ternate",
+    dialek: "melayu_ternate",
+    arti: "buah",
+    kelas_kata: "kata_benda",
+    contoh: "Sofo gora done gaya. (Buah jambu enak dimakan.)",
+    status: "aktif"
+  },
+  {
+    id: 111,
+    kata: "are",
+    bahasa: "ternate",
+    dialek: "melayu_ternate",
+    arti: "bulan",
+    kelas_kata: "kata_benda",
+    contoh: "Are jela dahe kie. (Bulan terang di atas gunung.)",
+    status: "aktif"
+  },
+  {
+    id: 112,
+    kata: "gogo",
+    bahasa: "ternate",
+    dialek: "melayu_ternate",
+    arti: "bulu",
+    kelas_kata: "kata_benda",
+    contoh: "Gogo kaso done wonge. (Bulu anjing itu berpasir.)",
+    status: "aktif"
+  },
+  {
+    id: 113,
+    kata: "bunga",
+    bahasa: "ternate",
+    dialek: "melayu_ternate",
+    arti: "bunga",
+    kelas_kata: "kata_benda",
+    contoh: "Bunga maku dahe fola. (Bunga indah di rumah.)",
+    status: "aktif"
+  },
+  {
+    id: 114,
+    kata: "sinone",
+    bahasa: "ternate",
+    dialek: "melayu_ternate",
+    arti: "bunuh",
+    kelas_kata: "kata_kerja",
+    contoh: "Sinone kaso done gura. (Membunuh anjing di kebun.)",
+    status: "aktif"
+  },
+  {
+    id: 115,
+    kata: "ira",
+    bahasa: "ternate",
+    dialek: "melayu_ternate",
+    arti: "burung",
+    kelas_kata: "kata_benda",
+    contoh: "Ira pane seho lamo. (Burung bertengger di aren besar.)",
+    status: "aktif"
+  },
+  {
+    id: 116,
+    kata: "kultidi",
+    bahasa: "ternate",
+    dialek: "melayu_ternate",
+    arti: "cuci",
+    kelas_kata: "kata_kerja",
+    contoh: "Ri kultidi lako se ake. (Saya membasuh mata dengan air.)",
+    status: "aktif"
+  },
+  {
+    id: 117,
+    kata: "hame",
+    bahasa: "ternate",
+    dialek: "melayu_ternate",
+    arti: "daging",
+    kelas_kata: "kata_benda",
+    contoh: "Hame haiwan done gaya. (Daging hewan enak dimakan.)",
+    status: "aktif"
+  },
+  {
+    id: 118,
+    kata: "rehe",
+    bahasa: "ternate",
+    dialek: "melayu_ternate",
+    arti: "darah",
+    kelas_kata: "kata_benda",
+    contoh: "Rehe fari done lako. (Banyak darah di mata.)",
+    status: "aktif"
+  },
+  {
+    id: 119,
+    kata: "se",
+    bahasa: "ternate",
+    dialek: "melayu_ternate",
+    arti: "datang",
+    kelas_kata: "kata_kerja",
+    contoh: "Una se fola mari. (Dia datang ke rumah saya.)",
+    status: "aktif"
+  },
+  {
+    id: 120,
+    kata: "talaga",
+    bahasa: "ternate",
+    dialek: "melayu_ternate",
+    arti: "daun",
+    kelas_kata: "kata_benda",
+    contoh: "Talaga seho lamo done gura. (Daun aren besar di kebun.)",
+    status: "aktif"
+  },
+  {
+    id: 121,
+    kata: "au",
+    bahasa: "ternate",
+    dialek: "melayu_ternate",
+    arti: "debu",
+    kelas_kata: "kata_benda",
+    contoh: "Au done wonge ngolo. (Debu di pasir pantai.)",
+    status: "aktif"
+  },
+  {
+    id: 122,
+    kata: "kado",
+    bahasa: "ternate",
+    dialek: "melayu_ternate",
+    arti: "dekat",
+    kelas_kata: "kata_sifat",
+    contoh: "Fola mari kado pasa. (Rumah saya dekat pasar.)",
+    status: "aktif"
+  },
+  {
+    id: 123,
+    kata: "rau",
+    bahasa: "ternate",
+    dialek: "melayu_ternate",
+    arti: "dengan",
+    kelas_kata: "kata_sifat",
+    contoh: "Ri tagi gura rau una. (Saya pergi ke kebun dengan dia.)",
+    status: "aktif"
+  },
+  {
+    id: 124,
+    kata: "fika",
+    bahasa: "ternate",
+    dialek: "melayu_ternate",
+    arti: "dengar",
+    kelas_kata: "kata_kerja",
+    contoh: "Ri fika bicara bahasa daerah. (Saya mendengar bahasa daerah.)",
+    status: "aktif"
+  },
+  {
+    id: 125,
+    kata: "lofo",
+    bahasa: "ternate",
+    dialek: "melayu_ternate",
+    arti: "di dalam",
+    kelas_kata: "kata_ganti",
+    contoh: "Ake lofo botol. (Air di dalam botol.)",
+    status: "aktif"
+  },
+  {
+    id: 126,
+    kata: "ise",
+    bahasa: "ternate",
+    dialek: "melayu_ternate",
+    arti: "di sini",
+    kelas_kata: "kata_ganti",
+    contoh: "Ri siloa rehe ise. (Saya berbaring di sini.)",
+    status: "aktif"
+  },
+  {
+    id: 127,
+    kata: "madaha",
+    bahasa: "ternate",
+    dialek: "melayu_ternate",
+    arti: "di situ",
+    kelas_kata: "kata_ganti",
+    contoh: "Una koko madaha. (Dia duduk di situ.)",
+    status: "aktif"
+  },
+  {
+    id: 128,
+    kata: "kasa",
+    bahasa: "ternate",
+    dialek: "melayu_ternate",
+    arti: "pada",
+    kelas_kata: "kata_ganti",
+    contoh: "Haka gasi kasa dada. (Beri garam pada makanan.)",
+    status: "aktif"
+  },
+  {
+    id: 129,
+    kata: "kage",
+    bahasa: "ternate",
+    dialek: "melayu_ternate",
+    arti: "berdiri",
+    kelas_kata: "kata_kerja",
+    contoh: "Una kage dahe fola. (Dia berdiri di rumah.)",
+    status: "aktif"
+  },
+  {
+    id: 130,
+    kata: "koko",
+    bahasa: "ternate",
+    dialek: "melayu_ternate",
+    arti: "duduk",
+    kelas_kata: "kata_kerja",
+    contoh: "Ri koko se sigi. (Saya duduk di mesjid.)",
+    status: "aktif"
+  },
+  {
+    id: 131,
+    kata: "tola",
+    bahasa: "ternate",
+    dialek: "melayu_ternate",
+    arti: "ekor",
+    kelas_kata: "kata_benda",
+    contoh: "Tola kaso done fari. (Ekor anjing itu banyak.)",
+    status: "aktif"
+  },
+  {
+    id: 132,
+    kata: "lego",
+    bahasa: "ternate",
+    dialek: "melayu_ternate",
+    arti: "engkau",
+    kelas_kata: "kata_ganti",
+    contoh: "Lego done tagi gura? (Apakah engkau pergi ke kebun?)",
+    status: "aktif"
+  },
+  {
+    id: 133,
+    kata: "bihi",
+    bahasa: "ternate",
+    dialek: "melayu_ternate",
+    arti: "gali",
+    kelas_kata: "kata_kerja",
+    contoh: "Ri bihi tana done gura. (Saya menggali tanah di kebun.)",
+    status: "aktif"
+  },
+  {
+    id: 134,
+    kata: "ngana",
+    bahasa: "ternate",
+    dialek: "melayu_ternate",
+    arti: "garuk",
+    kelas_kata: "kata_kerja",
+    contoh: "Kaso ngana gogo. (Anjing menggaruk bulunya.)",
+    status: "aktif"
+  },
+  {
+    id: 135,
+    kata: "fai",
+    bahasa: "ternate",
+    dialek: "melayu_ternate",
+    arti: "gemuk, lemak",
+    kelas_kata: "kata_sifat",
+    contoh: "Haiwan done fai. (Hewan itu gemuk.)",
+    status: "aktif"
+  },
+  {
+    id: 136,
+    kata: "rapu",
+    bahasa: "ternate",
+    dialek: "melayu_ternate",
+    arti: "gigit",
+    kelas_kata: "kata_kerja",
+    contoh: "Kaso rapu ngofa. (Anjing menggigit anak.)",
+    status: "aktif"
+  },
+  {
+    id: 137,
+    kata: "ing",
+    bahasa: "ternate",
+    dialek: "melayu_ternate",
+    arti: "gosok",
+    kelas_kata: "kata_kerja",
+    contoh: "Ri ing gasi se dada. (Saya menggosok garam pada makanan.)",
+    status: "aktif"
+  },
+  {
+    id: 138,
+    kata: "ese",
+    bahasa: "ternate",
+    dialek: "melayu_ternate",
+    arti: "hantam",
+    kelas_kata: "kata_kerja",
+    contoh: "Una ese mari se tana. (Dia menghantam batu ke tanah.)",
+    status: "aktif"
+  },
+  {
+    id: 139,
+    kata: "sihira",
+    bahasa: "ternate",
+    dialek: "melayu_ternate",
+    arti: "hidung",
+    kelas_kata: "kata_benda",
+    contoh: "Sihira done kado lako. (Hidung dekat mata.)",
+    status: "aktif"
+  },
+  {
+    id: 140,
+    kata: "nyinga",
+    bahasa: "ternate",
+    dialek: "melayu_ternate",
+    arti: "hidup",
+    kelas_kata: "kata_sifat",
+    contoh: "Haiwan done nyinga. (Hewan itu masih hidup.)",
+    status: "aktif"
+  },
+  {
+    id: 141,
+    kata: "ngun",
+    bahasa: "ternate",
+    dialek: "melayu_ternate",
+    arti: "hijau",
+    kelas_kata: "kata_sifat",
+    contoh: "Talaga seho done ngun. (Daun aren itu hijau.)",
+    status: "aktif"
+  },
+  {
+    id: 142,
+    kata: "ahu",
+    bahasa: "ternate",
+    dialek: "melayu_ternate",
+    arti: "hisap",
+    kelas_kata: "kata_kerja",
+    contoh: "Ngofa done ahu ake. (Anak menghisap air.)",
+    status: "aktif"
+  },
+  {
+    id: 143,
+    kata: "sui",
+    bahasa: "ternate",
+    dialek: "melayu_ternate",
+    arti: "hitung",
+    kelas_kata: "kata_kerja",
+    contoh: "Ri sui nyawa pasa. (Saya menghitung orang di pasar.)",
+    status: "aktif"
+  },
+  {
+    id: 144,
+    kata: "kotu",
+    bahasa: "ternate",
+    dialek: "melayu_ternate",
+    arti: "hujan",
+    kelas_kata: "kata_benda",
+    contoh: "Kotu done busa wonge. (Hujan membasahi pasir.)",
+    status: "aktif"
+  },
+  {
+    id: 145,
+    kata: "besa",
+    bahasa: "ternate",
+    dialek: "melayu_ternate",
+    arti: "ia",
+    kelas_kata: "kata_ganti",
+    contoh: "Besa tagi fola. (Ia pergi ke rumah.)",
+    status: "aktif"
+  },
+  {
+    id: 146,
+    kata: "njo",
+    bahasa: "ternate",
+    dialek: "melayu_ternate",
+    arti: "ikan",
+    kelas_kata: "kata_benda",
+    contoh: "Njo done matobo ngolo. (Ikan berenang di laut.)",
+    status: "aktif"
+  },
+  {
+    id: 147,
+    kata: "nyao",
+    bahasa: "ternate",
+    dialek: "melayu_ternate",
+    arti: "ini",
+    kelas_kata: "kata_ganti",
+    contoh: "Mari nyao done lamo. (Batu ini besar.)",
+    status: "aktif"
+  },
+  {
+    id: 148,
+    kata: "pudiku",
+    bahasa: "ternate",
+    dialek: "melayu_ternate",
+    arti: "istri",
+    kelas_kata: "kata_benda",
+    contoh: "Pudiku mari done fola. (Istri saya ada di rumah.)",
+    status: "aktif"
   }
 ];
 
