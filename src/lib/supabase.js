@@ -66,6 +66,7 @@ const setLocalData = (key, data) => {
 
 // Fallback logic for words, corrections, ratings, stats, quiz scores, likes, comments
 export const getLocalDb = () => {
+  initCacheBuster();
   return {
     kata: getLocalData('salama_kata', seedWords),
     laporan_koreksi: getLocalData('salama_laporan_koreksi', []),

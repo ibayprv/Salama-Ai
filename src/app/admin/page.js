@@ -75,20 +75,30 @@ export default function Admin() {
     setLoading(false);
   };
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
     setLoginError('');
+    setLoading(true);
 
-    // Check password against env or default fallback admin123
-    const adminPass = process.env.NEXT_PUBLIC_ADMIN_PASSWORD || 'admin123';
-
-    if (password === adminPass) {
-      setIsAuthenticated(true);
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('salama_admin_auth', 'true');
+    try {
+      const res = await fetch('/api/admin/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setIsAuthenticated(true);
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('salama_admin_auth', 'true');
+        }
+      } else {
+        setLoginError(data.message || 'Kata sandi salah. Silakan coba lagi.');
       }
-    } else {
-      setLoginError('Kata sandi salah. Silakan coba lagi.');
+    } catch (err) {
+      setLoginError('Koneksi gagal. Pastikan server aktif.');
+    } finally {
+      setLoading(false);
     }
   };
 
