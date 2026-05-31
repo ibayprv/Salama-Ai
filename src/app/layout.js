@@ -16,14 +16,37 @@ const inter = Inter({
 });
 
 export const metadata = {
+  metadataBase: new URL('https://salama-ai-zeta.vercel.app'),
   title: "Salama AI — Kamus Cerdas & Chatbot Bahasa Daerah Ternate dan Sula",
   description: "Platform kamus digital interaktif bahasa daerah Ternate (dialek Melayu Ternate dan Tidore) dan Sula dengan dukungan Chatbot AI Gemini, kuis interaktif, rating ulasan, dan sistem usulan perbaikan komunitas.",
   keywords: ["Salama AI", "Kamus Bahasa Ternate", "Kamus Bahasa Sula", "Bahasa Maluku Utara", "Duta Bahasa Maluku Utara 2026", "Universitas Khairun", "Chatbot AI Gemini", "Belajar Bahasa Daerah"],
   authors: [{ name: "Muhamad Ikbal Wambes" }],
   icons: {
-    icon: '/icon.svg',
-    shortcut: '/icon.svg',
+    icon: '/logo.svg',
+    shortcut: '/logo.svg',
     apple: '/logo.png',
+  },
+  openGraph: {
+    title: "Salama AI — Kamus Cerdas & Chatbot Bahasa Daerah Ternate dan Sula",
+    description: "Platform kamus digital interaktif bahasa daerah Ternate (dialek Melayu Ternate dan Tidore) dan Sula dengan dukungan Chatbot AI Gemini, kuis interaktif, rating ulasan, dan sistem usulan perbaikan komunitas.",
+    url: 'https://salama-ai-zeta.vercel.app',
+    siteName: 'Salama AI',
+    images: [
+      {
+        url: '/logo.png',
+        width: 512,
+        height: 512,
+        alt: 'Salama AI Logo',
+      },
+    ],
+    locale: 'id_ID',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: "Salama AI — Kamus Cerdas & Chatbot Bahasa Daerah Ternate dan Sula",
+    description: "Platform kamus digital interaktif bahasa daerah Ternate (dialek Melayu Ternate dan Tidore) dan Sula dengan dukungan Chatbot AI Gemini, kuis interaktif, rating ulasan, dan sistem usulan perbaikan komunitas.",
+    images: ['/logo.png'],
   }
 };
 
