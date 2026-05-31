@@ -22,21 +22,21 @@ function generateOfflineResponse(userMessage, selectedLanguage) {
   // If we found matches, return formatted dictionary results
   if (matches.length > 0) {
     const responseList = matches.map(w =>
-      `📖 **${w.kata}** _(${w.kelas_kata.replace('kata_', '')})_ = **${w.arti}**\n   Dialek: ${w.dialek.replace(/_/g, ' ')}\n   Contoh: _${w.contoh}_`
+      `📖 **${w.kata}** (${w.kelas_kata.replace('kata_', '')}) = **${w.arti}**\nDialek: ${w.dialek.replace(/_/g, ' ')}\nContoh: ${w.contoh}`
     ).join('\n\n');
 
-    return `### 📡 Mode Kamus Lokal Aktif\n\nSaat ini layanan AI utama sedang tidak tersedia, namun saya berhasil menemukan kata yang Anda cari dari database kamus kami:\n\n${responseList}\n\n---\n💡 Ingin mencari kata lain? Ketik saja di sini, atau buka menu **Kamus** untuk menjelajahi seluruh kosakata.`;
+    return `📡 Mode Kamus Lokal Aktif\n\nSaat ini layanan AI utama sedang tidak tersedia, namun saya berhasil menemukan kata yang Anda cari dari database kamus kami:\n\n${responseList}\n\n💡 Ingin mencari kata lain? Ketik saja di sini, atau buka menu **Kamus** untuk menjelajahi seluruh kosakata.`;
   }
 
   // Greeting detection
   if (query.match(/^(halo|hai|hi|hello|hey|salam|selamat)/)) {
     const sampleWords = langWords.slice(0, 5).map(w => `**${w.kata}** = ${w.arti}`).join(', ');
-    return `### 👋 Halo! Saya Salama AI\n\nSaat ini layanan AI utama sedang tidak tersedia, namun saya tetap bisa membantu Anda mencari arti kata dari database kamus lokal kami!\n\n**Coba tanyakan arti kata-kata ini:**\n${sampleWords}\n\nKetik kata dalam bahasa ${selectedLanguage || 'Ternate'} atau bahasa Indonesia, dan saya akan mencarikannya untuk Anda! 😊`;
+    return `👋 Halo! Saya Salama AI\n\nSaat ini layanan AI utama sedang tidak tersedia, namun saya tetap bisa membantu Anda mencari arti kata dari database kamus lokal kami!\n\nCoba tanyakan arti kata-kata ini:\n${sampleWords}\n\nKetik kata dalam bahasa ${selectedLanguage || 'Ternate'} atau bahasa Indonesia, dan saya akan mencarikannya untuk Anda! 😊`;
   }
 
   // No matches found — suggest popular words
   const suggestions = langWords.slice(0, 6).map(w => `**${w.kata}** (${w.arti})`).join(', ');
-  return `### 📡 Mode Kamus Lokal Aktif\n\nMaaf, saya tidak menemukan kata yang cocok dengan pertanyaan Anda di database kamus lokal.\n\n**Coba tanyakan salah satu kata berikut:**\n${suggestions}\n\nAtau buka menu **Kamus** untuk menjelajahi seluruh ${langWords.length} kosakata bahasa ${selectedLanguage || 'Ternate'} yang tersedia. 📚`;
+  return `📡 Mode Kamus Lokal Aktif\n\nMaaf, saya tidak menemukan kata yang cocok dengan pertanyaan Anda di database kamus lokal.\n\nCoba tanyakan salah satu kata berikut:\n${suggestions}\n\nAtau buka menu **Kamus** untuk menjelajahi seluruh ${langWords.length} kosakata bahasa ${selectedLanguage || 'Ternate'} yang tersedia. 📚`;
 }
 
 // ==================== MAIN API ROUTE ====================
@@ -58,8 +58,8 @@ export async function POST(req) {
 
     latestMessage = messages[messages.length - 1].content;
 
-    // If API key is not configured, go directly to offline fallback
-    if (!apiKey || !apiKey.startsWith('AIza')) {
+    // If API key is not configured or invalid format, go directly to offline fallback
+    if (!apiKey || (!apiKey.startsWith('AIza') && !apiKey.startsWith('AQ'))) {
       console.warn('[Salama AI] No valid GEMINI_API_KEY found. Using offline fallback.');
       const fallbackText = generateOfflineResponse(latestMessage, selectedLanguage);
       return new Response(JSON.stringify({ text: fallbackText }), {
@@ -94,6 +94,7 @@ ATURAN PENTING:
 2. Jika pengguna menanyakan kata yang TIDAK ADA dalam database, gunakan pengetahuan luas Anda sebagai pakar linguistik Ternate/Sula. Nyatakan dengan sopan bahwa kata tersebut tidak ada dalam database utama kamus kami, namun berikan penjelasan seakurat mungkin.
 3. Bantu pengguna menerjemahkan kalimat, berikan contoh percakapan sehari-hari, jelaskan asal-usul dialek, serta berikan konteks budaya yang relevan.
 4. Gunakan bahasa Indonesia yang interaktif, penuh rasa hormat, dan motivasi tinggi untuk melestarikan bahasa daerah Maluku Utara. Akhiri jawaban dengan sentuhan lokal bila relevan (seperti "Suba" atau salam khas lainnya).
+5. JANGAN menggunakan format heading markdown (###). Gunakan teks biasa saja. Gunakan **bold** untuk penekanan kata penting.
 `;
 
     // Initialize Gemini Client
@@ -136,7 +137,10 @@ ATURAN PENTING:
       }
     });
 
-    const responseText = result.response.text();
+    // Clean up any markdown headings and hashtags from the AI response
+    let responseText = result.response.text();
+    responseText = responseText.replace(/^#{1,6}\s+/gm, '');
+    responseText = responseText.replace(/#/g, '');
 
     return new Response(JSON.stringify({ text: responseText }), {
       status: 200,

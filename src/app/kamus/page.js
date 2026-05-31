@@ -15,6 +15,7 @@ export default function Kamus() {
   const [expandedCommentsWordId, setExpandedCommentsWordId] = useState(null);
   const [newCommentInput, setNewCommentInput] = useState({ nama: '', teks: '' });
   const [likedWords, setLikedWords] = useState({}); // stores { wordId: true } to prevent double likes
+  const [commentCounts, setCommentCounts] = useState({}); // stores { wordId: count }
 
   // Correction Form Modal State
   const [selectedWord, setSelectedWord] = useState(null);
@@ -31,6 +32,16 @@ export default function Kamus() {
 
   useEffect(() => {
     fetchWords();
+
+    // Check for search query in URL params
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const searchParam = params.get('search');
+      if (searchParam) {
+        setSearchQuery(searchParam);
+      }
+    }
+
     // Load liked words from localStorage if available
     if (typeof window !== 'undefined') {
       const storedLikes = localStorage.getItem('salama_liked_words');
@@ -54,6 +65,7 @@ export default function Kamus() {
         .on('postgres_changes', { event: '*', schema: 'public', table: 'komentar_kata' }, (payload) => {
           if (payload.new && payload.new.kata_id) {
             loadComments(payload.new.kata_id);
+            fetchCommentCounts();
           }
         })
         .subscribe();
@@ -66,11 +78,23 @@ export default function Kamus() {
     };
   }, []);
 
+  const fetchCommentCounts = async () => {
+    const commentRes = await db.getAllWordComments();
+    if (commentRes.data) {
+      const counts = {};
+      commentRes.data.forEach(c => {
+        counts[c.kata_id] = (counts[c.kata_id] || 0) + 1;
+      });
+      setCommentCounts(counts);
+    }
+  };
+
   const fetchWords = async () => {
     const res = await db.getWords();
     if (res.data) {
       setWords(res.data);
     }
+    await fetchCommentCounts();
   };
 
   const handleLike = async (wordId) => {
@@ -139,6 +163,8 @@ export default function Kamus() {
       setNewCommentInput({ nama: '', teks: '' });
       // Reload comments
       await loadComments(wordId);
+      // Reload comment counts
+      await fetchCommentCounts();
     }
   };
 
@@ -439,7 +465,7 @@ export default function Kamus() {
                       }`}
                     >
                       <MessageSquare className="h-4 w-4" />
-                      <span>Review / Diskusi</span>
+                      <span>Review / Diskusi ({commentCounts[word.id] || 0})</span>
                     </button>
                   </div>
 

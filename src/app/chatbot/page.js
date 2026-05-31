@@ -1,7 +1,30 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from 'react';
+import Link from 'next/link';
 import { MessageSquare, Send, Trash2, Sparkles, HelpCircle, Bot, User, RefreshCw } from 'lucide-react';
+
+const getYellowWordLink = (word) => {
+  const cleanWord = word.trim().toLowerCase();
+  
+  if (cleanWord.includes('kamus')) {
+    return '/kamus';
+  }
+  if (cleanWord.includes('kuis')) {
+    return '/kuis';
+  }
+  if (cleanWord.includes('statistik') || cleanWord.includes('review') || cleanWord.includes('ulasan')) {
+    return '/statistik';
+  }
+  if (cleanWord.includes('admin') || cleanWord.includes('koreksi')) {
+    return '/admin';
+  }
+  if (cleanWord.includes('chatbot') || cleanWord.includes('asisten') || cleanWord.includes('salama ai')) {
+    return '/chatbot';
+  }
+  
+  return `/kamus?search=${encodeURIComponent(word.trim())}`;
+};
 
 export default function Chatbot() {
   const [messages, setMessages] = useState([
@@ -224,7 +247,15 @@ export default function Chatbot() {
                         {msg.content.split('\n').map((line, lIdx) => (
                           <span key={lIdx} className="block">
                             {line.split('**').map((part, pIdx) => 
-                              pIdx % 2 === 1 ? <strong key={pIdx} className="text-gold-400 font-extrabold">{part}</strong> : part
+                              pIdx % 2 === 1 ? (
+                                <Link 
+                                  key={pIdx} 
+                                  href={getYellowWordLink(part)}
+                                  className="text-gold-400 font-extrabold underline decoration-dashed decoration-gold-400/50 hover:text-gold-300 hover:decoration-gold-300 transition-all cursor-pointer"
+                                >
+                                  {part}
+                                </Link>
+                              ) : part
                             )}
                           </span>
                         ))}
