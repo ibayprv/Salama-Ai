@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Menu, X, BookOpen, MessageSquare, Award, BarChart2, ShieldAlert } from 'lucide-react';
+import { Menu, X, BookOpen, MessageSquare, Award, BarChart2, ShieldAlert, Home } from 'lucide-react';
 import Logo from '@/components/Logo';
 
 export default function Header() {
@@ -20,6 +20,7 @@ export default function Header() {
   }, []);
 
   const navItems = [
+    { name: 'Home', href: '/', icon: Home },
     { name: 'Kamus', href: '/kamus', icon: BookOpen },
     { name: 'Chatbot AI', href: '/chatbot', icon: MessageSquare },
     { name: 'Kuis', href: '/kuis', icon: Award },
