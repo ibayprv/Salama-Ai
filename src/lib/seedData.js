@@ -1,4 +1,4 @@
-﻿// Dataset Kosakata Awal Salama AI - Kamus Ternate & Sula
+// Dataset Kosakata Awal Salama AI - Kamus Ternate & Sula
 // Seluruh kosakata di bawah ini dijamin 100% asli, akurat, dan bebas dari placeholder looping.
 
 export const seedWords = [
@@ -1552,9 +1552,9 @@ export const seedWords = [
     kata: "alo",
     bahasa: "ternate",
     dialek: "ternate",
-    arti: "dua",
-    kelas_kata: "kata_bilangan",
-    contoh: "Ngofa alo tagi sigi. (Dua anak pergi ke mesjid.)",
+    arti: "dingin",
+    kelas_kata: "kata_sifat",
+    contoh: "Aho alo ena lami-lami. (Air dingin itu sangat segar.)",
     status: "aktif"
   },
   {
