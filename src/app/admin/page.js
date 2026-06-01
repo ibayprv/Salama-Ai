@@ -3,10 +3,20 @@
 import React, { useState, useEffect } from 'react';
 import {
   ShieldAlert, Key, LogOut, Plus, Edit2, Trash2,
-  FileSpreadsheet, Download, Upload, Check, X, AlertCircle, RefreshCw
+  FileSpreadsheet, Download, Upload, Check, X, AlertCircle, RefreshCw, XCircle, AlertTriangle, Info
 } from 'lucide-react';
 import { db } from '@/lib/supabase';
 import { seedWords } from '@/lib/seedData';
+
+const parseCorrectionJSON = (usulanStr) => {
+  try {
+    const trimmed = usulanStr ? usulanStr.trim() : '';
+    if (trimmed.startsWith('{') && trimmed.endsWith('}')) {
+      return JSON.parse(trimmed);
+    }
+  } catch (e) {}
+  return null;
+};
 
 export default function Admin() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -31,14 +41,21 @@ export default function Admin() {
     contoh: ''
   });
   const [formMsg, setFormMsg] = useState({ type: '', text: '' });
+  const [duplicateWarning, setDuplicateWarning] = useState(null); // { found: [...], exact: bool }
+
+  // Bulk Selection States
+  const [selectedWordIds, setSelectedWordIds] = useState([]);
+  const [selectedCorrectionIds, setSelectedCorrectionIds] = useState([]);
 
   // CSV Import States
   const [showImport, setShowImport] = useState(false);
   const [csvContent, setCsvContent] = useState('');
   const [importStatus, setImportStatus] = useState('');
+  const [importReport, setImportReport] = useState(null); // { imported, skipped, skippedWords }
 
   // Search in Admin
   const [adminSearch, setAdminSearch] = useState('');
+  const [corrSearch, setCorrSearch] = useState('');
 
   // Sort and Filter States
   const [filterBahasa, setFilterBahasa] = useState('all');
@@ -75,10 +92,77 @@ export default function Admin() {
   }, []);
 
   useEffect(() => {
-    if (isAuthenticated) {
-      fetchAdminData();
+    setSelectedWordIds([]);
+    setSelectedCorrectionIds([]);
+  }, [activeTab]);
+
+  const handleSelectWord = (id) => {
+    setSelectedWordIds(prev => 
+      prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
+    );
+  };
+
+  const handleSelectAllWords = (visibleWords) => {
+    if (selectedWordIds.length === visibleWords.length) {
+      setSelectedWordIds([]);
+    } else {
+      setSelectedWordIds(visibleWords.map(w => w.id));
     }
-  }, [isAuthenticated]);
+  };
+
+  const handleSelectCorrection = (id) => {
+    setSelectedCorrectionIds(prev =>
+      prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
+    );
+  };
+
+  const handleSelectAllCorrections = (visibleCorrections) => {
+    if (selectedCorrectionIds.length === visibleCorrections.length) {
+      setSelectedCorrectionIds([]);
+    } else {
+      setSelectedCorrectionIds(visibleCorrections.map(c => c.id));
+    }
+  };
+
+  const handleBulkDeleteWords = async () => {
+    if (selectedWordIds.length === 0) return;
+    const confirmDelete = window.confirm(`Apakah Anda yakin ingin menghapus secara massal ${selectedWordIds.length} kosakata terpilih? Tindakan ini tidak dapat dibatalkan!`);
+    if (!confirmDelete) return;
+
+    setLoading(true);
+    try {
+      const res = await db.deleteWords(selectedWordIds);
+      if (res && res.error) throw new Error(res.error);
+      setSelectedWordIds([]);
+      await fetchAdminData();
+      alert('Kosakata terpilih berhasil dihapus.');
+    } catch (err) {
+      console.error(err);
+      alert('Gagal menghapus beberapa kosakata.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleBulkDeleteCorrections = async () => {
+    if (selectedCorrectionIds.length === 0) return;
+    const confirmDelete = window.confirm(`Apakah Anda yakin ingin menghapus secara massal ${selectedCorrectionIds.length} laporan koreksi terpilih?`);
+    if (!confirmDelete) return;
+
+    setLoading(true);
+    try {
+      const res = await db.deleteCorrections(selectedCorrectionIds);
+      if (res && res.error) throw new Error(res.error);
+      setSelectedCorrectionIds([]);
+      await fetchAdminData();
+      alert('Laporan koreksi terpilih berhasil dihapus.');
+    } catch (err) {
+      console.error(err);
+      alert('Gagal menghapus laporan koreksi.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const fetchAdminData = async () => {
     setLoading(true);
@@ -92,6 +176,12 @@ export default function Admin() {
 
     setLoading(false);
   };
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      fetchAdminData();
+    }
+  }, [isAuthenticated]);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -137,6 +227,16 @@ export default function Admin() {
   };
 
   // CRUD Operations
+  // Check if a word already exists in the system
+  const checkDuplicate = (kata, bahasa) => {
+    const normalizedKata = kata.trim().toLowerCase();
+    const normalizedBahasa = bahasa.trim().toLowerCase();
+    return words.filter(w =>
+      w.kata.trim().toLowerCase() === normalizedKata &&
+      w.bahasa.trim().toLowerCase() === normalizedBahasa
+    );
+  };
+
   const handleOpenCreate = () => {
     setEditingWord(null);
     setWordForm({
@@ -148,6 +248,7 @@ export default function Admin() {
       contoh: ''
     });
     setFormMsg({ type: '', text: '' });
+    setDuplicateWarning(null);
     setShowForm(true);
   };
 
@@ -162,7 +263,29 @@ export default function Admin() {
       contoh: word.contoh || ''
     });
     setFormMsg({ type: '', text: '' });
+    setDuplicateWarning(null);
     setShowForm(true);
+  };
+
+  // Live duplicate check when user types in the form
+  const handleWordFormChange = (field, value) => {
+    const newForm = { ...wordForm, [field]: value };
+    setWordForm(newForm);
+
+    // Only check duplicates in create mode, and when kata field has content
+    if (!editingWord && (field === 'kata' || field === 'bahasa') && newForm.kata.trim().length >= 2) {
+      const dupes = checkDuplicate(newForm.kata, newForm.bahasa);
+      if (dupes.length > 0) {
+        setDuplicateWarning({
+          found: dupes,
+          message: `Kata "${newForm.kata}" dalam bahasa ${newForm.bahasa} sudah ada di sistem (ID: ${dupes.map(d => d.id).join(', ')}, arti: "${dupes[0].arti}").`
+        });
+      } else {
+        setDuplicateWarning(null);
+      }
+    } else if (field === 'kata' && value.trim().length < 2) {
+      setDuplicateWarning(null);
+    }
   };
 
   const handleFormSubmit = async (e) => {
@@ -172,6 +295,19 @@ export default function Admin() {
     if (!wordForm.kata.trim() || !wordForm.arti.trim()) {
       setFormMsg({ type: 'error', text: 'Semua kolom wajib diisi.' });
       return;
+    }
+
+    // Final duplicate check before submit (create mode only)
+    if (!editingWord) {
+      const dupes = checkDuplicate(wordForm.kata, wordForm.bahasa);
+      if (dupes.length > 0) {
+        const confirmAdd = confirm(
+          `⚠️ PERINGATAN DATA GANDA!\n\nKata "${wordForm.kata}" dalam bahasa ${wordForm.bahasa} sudah ada di sistem:\n` +
+          dupes.map(d => `• ID ${d.id}: "${d.kata}" → "${d.arti}" (${d.kelas_kata})`).join('\n') +
+          `\n\nApakah Anda tetap ingin menambahkan kata ini?`
+        );
+        if (!confirmAdd) return;
+      }
     }
 
     try {
@@ -201,6 +337,7 @@ export default function Admin() {
         });
         if (res.error) throw new Error(res.error);
         setFormMsg({ type: 'success', text: 'Kosakata baru berhasil ditambahkan!' });
+        setDuplicateWarning(null);
       }
 
       await fetchAdminData();
@@ -278,16 +415,21 @@ export default function Admin() {
     reader.readAsText(file);
   };
 
-  // Import CSV content
+  // Import CSV content — with smart duplicate filtering
   const handleImportCSV = async () => {
     if (!csvContent.trim()) {
       setImportStatus('Masukkan konten teks CSV Anda.');
       return;
     }
 
+    setImportReport(null);
+    setImportStatus('Sedang memproses dan memfilter data ganda...');
+
     try {
       const lines = csvContent.split('\n');
       let importCount = 0;
+      let skippedCount = 0;
+      const skippedWords = [];
 
       for (let i = 1; i < lines.length; i++) {
         const line = lines[i].trim();
@@ -295,14 +437,26 @@ export default function Admin() {
 
         // Basic CSV Parsing (handling quotes lightly)
         const parts = line.split(',').map(p => p.replace(/^"|"$/g, '').trim());
-        if (parts.length < 5) continue;
+        if (parts.length < 4) continue;
 
         // Expected format: kata, bahasa, dialek, arti, kelas_kata, contoh (optional)
         const [kata, bahasa, dialek, arti, kelas_kata, contoh] = parts;
 
+        if (!kata || !arti) continue;
+
+        const normalizedBahasa = bahasa?.toLowerCase() === 'sula' ? 'sula' : 'ternate';
+
+        // Check for duplicates against existing system data
+        const dupes = checkDuplicate(kata, normalizedBahasa);
+        if (dupes.length > 0) {
+          skippedCount++;
+          skippedWords.push({ kata, bahasa: normalizedBahasa, arti, existingArti: dupes[0].arti, existingId: dupes[0].id });
+          continue; // Skip this duplicate
+        }
+
         await db.insertWord({
           kata,
-          bahasa: bahasa.toLowerCase() === 'sula' ? 'sula' : 'ternate',
+          bahasa: normalizedBahasa,
           dialek: dialek || 'melayu_ternate',
           arti,
           kelas_kata: kelas_kata || 'kata_benda',
@@ -313,12 +467,22 @@ export default function Admin() {
       }
 
       await fetchAdminData();
-      setImportStatus(`Berhasil mengimpor ${importCount} kosakata baru ke kamus!`);
+
+      // Build detailed report
+      setImportReport({ imported: importCount, skipped: skippedCount, skippedWords });
+
+      if (skippedCount > 0 && importCount > 0) {
+        setImportStatus(`✅ Berhasil mengimpor ${importCount} kosakata baru. ⚠️ ${skippedCount} kata dilewati karena sudah ada di sistem.`);
+      } else if (skippedCount > 0 && importCount === 0) {
+        setImportStatus(`⚠️ Semua ${skippedCount} kosakata dalam CSV sudah ada di sistem. Tidak ada data baru yang diimpor.`);
+      } else {
+        setImportStatus(`✅ Berhasil mengimpor ${importCount} kosakata baru ke kamus!`);
+      }
+
       setCsvContent('');
-      setTimeout(() => setShowImport(false), 2500);
     } catch (err) {
       console.error(err);
-      setImportStatus('Gagal mengimpor CSV. Pastikan format kolom sesuai.');
+      setImportStatus('❌ Gagal mengimpor CSV. Pastikan format kolom sesuai.');
     }
   };
 
@@ -424,19 +588,43 @@ export default function Admin() {
         {activeTab === 'kamus' && (
           <div className="space-y-6">
 
-            {/* Action Bar */}
+             {/* Action Bar */}
             <div className="flex flex-col sm:flex-row justify-between items-center gap-4 bg-slate-950/20 p-4 border border-white/5 rounded-xl">
-              <input
-                type="text"
-                value={adminSearch}
-                onChange={(e) => setAdminSearch(e.target.value)}
-                placeholder="Cari kata di dashboard admin..."
-                className="w-full sm:w-80 bg-slate-950 border border-white/10 rounded-xl px-4 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-gold-500 transition-all"
-              />
+              {/* Search input with clear button */}
+              <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+                <div className="relative w-full sm:w-80">
+                  <input
+                    type="text"
+                    value={adminSearch}
+                    onChange={(e) => setAdminSearch(e.target.value)}
+                    placeholder="Cari kata di dashboard admin..."
+                    className="w-full bg-slate-950 border border-white/10 rounded-xl px-4 py-2.5 pr-9 text-xs text-slate-200 focus:outline-none focus:border-gold-500 transition-all"
+                  />
+                  {adminSearch && (
+                    <button
+                      onClick={() => setAdminSearch('')}
+                      title="Hapus pencarian"
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 rounded-full text-slate-500 hover:text-white hover:bg-white/10 transition-all"
+                    >
+                      <XCircle className="h-4 w-4" />
+                    </button>
+                  )}
+                </div>
+                
+                {selectedWordIds.length > 0 && (
+                  <button
+                    onClick={handleBulkDeleteWords}
+                    className="px-4 py-2.5 bg-rose-500 hover:bg-rose-600 text-white text-xs font-bold rounded-xl transition-all flex items-center space-x-1.5 shadow-lg shadow-rose-950/20 animate-fade-in"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                    <span>Hapus Terpilih ({selectedWordIds.length})</span>
+                  </button>
+                )}
+              </div>
 
               <div className="flex items-center space-x-3 w-full sm:w-auto justify-end">
                 <button
-                  onClick={() => setShowImport(true)}
+                  onClick={() => { setShowImport(true); setImportReport(null); setImportStatus(''); }}
                   className="px-4 py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 hover:text-white text-xs font-bold rounded-xl transition-all flex items-center space-x-1.5"
                 >
                   <Upload className="h-4 w-4 text-gold-500" />
@@ -544,7 +732,15 @@ export default function Admin() {
               <table className="w-full text-left text-xs border-collapse">
                 <thead>
                   <tr className="bg-slate-950 border-b border-white/10 text-slate-400 uppercase font-bold tracking-wider">
-                    <th className="p-4 text-center">ID</th>
+                    <th className="p-4 text-center w-12">
+                      <input
+                        type="checkbox"
+                        checked={adminFilteredWords.length > 0 && selectedWordIds.length === adminFilteredWords.length}
+                        onChange={() => handleSelectAllWords(adminFilteredWords)}
+                        className="rounded border-white/10 bg-slate-950 text-gold-500 focus:ring-0 focus:ring-offset-0 cursor-pointer"
+                      />
+                    </th>
+                    <th className="p-4 text-center w-12">ID</th>
                     <th className="p-4">Kata</th>
                     <th className="p-4">Bahasa</th>
                     <th className="p-4">Dialek</th>
@@ -557,15 +753,28 @@ export default function Admin() {
                 <tbody>
                   {loading ? (
                     <tr>
-                      <td colSpan={8} className="p-8 text-center text-slate-400">Loading data...</td>
+                      <td colSpan={9} className="p-8 text-center text-slate-400">Loading data...</td>
                     </tr>
                   ) : adminFilteredWords.length === 0 ? (
                     <tr>
-                      <td colSpan={8} className="p-8 text-center text-slate-400">Data kosong atau kata tidak ditemukan.</td>
+                      <td colSpan={9} className="p-8 text-center text-slate-400">Data kosong atau kata tidak ditemukan.</td>
                     </tr>
                   ) : (
                     adminFilteredWords.map((word) => (
-                      <tr key={word.id} className="border-b border-white/5 hover:bg-white/5 transition-colors">
+                      <tr 
+                        key={word.id} 
+                        className={`border-b border-white/5 hover:bg-white/5 transition-colors ${
+                          selectedWordIds.includes(word.id) ? 'bg-gold-500/5' : ''
+                        }`}
+                      >
+                        <td className="p-4 text-center">
+                          <input
+                            type="checkbox"
+                            checked={selectedWordIds.includes(word.id)}
+                            onChange={() => handleSelectWord(word.id)}
+                            className="rounded border-white/10 bg-slate-950 text-gold-500 focus:ring-0 focus:ring-offset-0 cursor-pointer"
+                          />
+                        </td>
                         <td className="p-4 text-center font-bold text-slate-500">{word.id}</td>
                         <td className="p-4 font-bold text-white text-sm">{word.kata}</td>
                         <td className="p-4 uppercase font-semibold text-slate-300">{word.bahasa}</td>
@@ -606,82 +815,195 @@ export default function Admin() {
         )}
 
         {/* Tab 2: Corrections Antrean Queue */}
-        {activeTab === 'koreksi' && (
-          <div className="space-y-6">
-            <div className="overflow-x-auto rounded-2xl glass-panel border border-white/5">
-              <table className="w-full text-left text-xs border-collapse">
-                <thead>
-                  <tr className="bg-slate-950 border-b border-white/10 text-slate-400 uppercase font-bold tracking-wider">
-                    <th className="p-4">Kata Asli</th>
-                    <th className="p-4">Pelapor</th>
-                    <th className="p-4">Kata Salah</th>
-                    <th className="p-4">Usulan</th>
-                    <th className="p-4">Alasan</th>
-                    <th className="p-4">Referensi</th>
-                    <th className="p-4">Status</th>
-                    <th className="p-4 text-center">Tindakan</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {loading ? (
-                    <tr>
-                      <td colSpan={8} className="p-8 text-center text-slate-400">Loading data...</td>
-                    </tr>
-                  ) : corrections.length === 0 ? (
-                    <tr>
-                      <td colSpan={8} className="p-8 text-center text-slate-400">Antrean koreksi kosong. Belum ada laporan komunitas.</td>
-                    </tr>
-                  ) : (
-                    corrections.map((corr) => (
-                      <tr key={corr.id} className="border-b border-white/5 hover:bg-white/5 transition-colors">
-                        <td className="p-4 font-bold text-white">
-                          {corr.kata ? corr.kata.kata : `ID: ${corr.kata_id}`}
-                        </td>
-                        <td className="p-4 font-semibold text-slate-300">{corr.pelapor_info}</td>
-                        <td className="p-4 text-rose-400 font-bold line-through">{corr.kata_salah}</td>
-                        <td className="p-4 text-emerald-400 font-bold">{corr.usulan_perbaikan}</td>
-                        <td className="p-4 text-slate-400 max-w-xs">{corr.alasan}</td>
-                        <td className="p-4 text-slate-500 italic">{corr.sumber || '-'}</td>
-                        <td className="p-4">
-                          <span className={`px-2.5 py-0.5 rounded text-[10px] font-bold ${corr.status === 'menunggu'
-                              ? 'bg-amber-500/10 text-amber-500 border border-amber-500/25 animate-pulse'
-                              : corr.status === 'disetujui'
-                                ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20'
-                                : 'bg-rose-500/10 text-rose-500 border border-rose-500/20'
-                            }`}>
-                            {corr.status}
-                          </span>
-                        </td>
-                        <td className="p-4">
-                          {corr.status === 'menunggu' ? (
-                            <div className="flex items-center justify-center space-x-2">
-                              <button
-                                onClick={() => handleApproveCorrection(corr.id)}
-                                className="p-2 bg-emerald-500/10 hover:bg-emerald-500 border border-emerald-500/20 hover:border-transparent text-emerald-500 hover:text-slate-950 rounded-lg transition-all"
-                                title="Setujui Usulan"
-                              >
-                                <Check className="h-3.5 w-3.5" />
-                              </button>
-                              <button
-                                onClick={() => handleRejectCorrection(corr.id)}
-                                className="p-2 bg-rose-500/10 hover:bg-rose-500 border border-rose-500/20 hover:border-transparent text-rose-500 hover:text-white rounded-lg transition-all"
-                                title="Tolak Usulan"
-                              >
-                                <X className="h-3.5 w-3.5" />
-                              </button>
-                            </div>
-                          ) : (
-                            <span className="text-[10px] text-slate-500 italic text-center block">Tinjauan Selesai</span>
-                          )}
-                        </td>
-                      </tr>
-                    ))
+        {activeTab === 'koreksi' && (() => {
+          const filteredCorrections = corrections.filter(c => {
+            if (!corrSearch.trim()) return true;
+            const query = corrSearch.toLowerCase();
+            const matchesPelapor = c.pelapor_info?.toLowerCase().includes(query);
+            const matchesKataSalah = c.kata_salah?.toLowerCase().includes(query);
+            const matchesUsulan = c.usulan_perbaikan?.toLowerCase().includes(query);
+            const matchesAlasan = c.alasan?.toLowerCase().includes(query);
+            return matchesPelapor || matchesKataSalah || matchesUsulan || matchesAlasan;
+          });
+
+          return (
+            <div className="space-y-6">
+              {/* Action Bar for Corrections */}
+              <div className="flex flex-col sm:flex-row justify-between items-center gap-4 bg-slate-950/20 p-4 border border-white/5 rounded-xl">
+                <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+                  <div className="relative w-full sm:w-80">
+                    <input
+                      type="text"
+                      value={corrSearch}
+                      onChange={(e) => setCorrSearch(e.target.value)}
+                      placeholder="Cari laporan koreksi..."
+                      className="w-full bg-slate-950 border border-white/10 rounded-xl px-4 py-2.5 pr-9 text-xs text-slate-200 focus:outline-none focus:border-amber-500 transition-all"
+                    />
+                    {corrSearch && (
+                      <button
+                        onClick={() => setCorrSearch('')}
+                        title="Hapus pencarian"
+                        className="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 rounded-full text-slate-500 hover:text-white hover:bg-white/10 transition-all"
+                      >
+                        <XCircle className="h-4 w-4" />
+                      </button>
+                    )}
+                  </div>
+                  
+                  {selectedCorrectionIds.length > 0 && (
+                    <button
+                      onClick={handleBulkDeleteCorrections}
+                      className="px-4 py-2.5 bg-rose-500 hover:bg-rose-600 text-white text-xs font-bold rounded-xl transition-all flex items-center space-x-1.5 shadow-lg shadow-rose-950/20 animate-fade-in"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                      <span>Hapus Terpilih ({selectedCorrectionIds.length})</span>
+                    </button>
                   )}
-                </tbody>
-              </table>
+                </div>
+
+                <div className="text-xs text-slate-400 font-medium">
+                  Menampilkan <strong className="text-white">{filteredCorrections.length}</strong> dari <strong className="text-white">{corrections.length}</strong> laporan.
+                </div>
+              </div>
+
+              <div className="overflow-x-auto rounded-2xl glass-panel border border-white/5">
+                <table className="w-full text-left text-xs border-collapse">
+                  <thead>
+                    <tr className="bg-slate-950 border-b border-white/10 text-slate-400 uppercase font-bold tracking-wider">
+                      <th className="p-4 text-center w-12">
+                        <input
+                          type="checkbox"
+                          checked={filteredCorrections.length > 0 && selectedCorrectionIds.length === filteredCorrections.length}
+                          onChange={() => handleSelectAllCorrections(filteredCorrections)}
+                          className="rounded border-white/10 bg-slate-950 text-gold-500 focus:ring-0 focus:ring-offset-0 cursor-pointer"
+                        />
+                      </th>
+                      <th className="p-4">Kata Asli</th>
+                      <th className="p-4">Pelapor</th>
+                      <th className="p-4">Sebelum Perbaikan</th>
+                      <th className="p-4">Usulan Baru</th>
+                      <th className="p-4">Alasan</th>
+                      <th className="p-4">Referensi</th>
+                      <th className="p-4">Status</th>
+                      <th className="p-4 text-center">Tindakan</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {loading ? (
+                      <tr>
+                        <td colSpan={9} className="p-8 text-center text-slate-400">Loading data...</td>
+                      </tr>
+                    ) : filteredCorrections.length === 0 ? (
+                      <tr>
+                        <td colSpan={9} className="p-8 text-center text-slate-400">Antrean koreksi kosong atau kata tidak ditemukan.</td>
+                      </tr>
+                    ) : (
+                      filteredCorrections.map((corr) => {
+                        const parsed = parseCorrectionJSON(corr.usulan_perbaikan);
+                        const isJson = parsed !== null;
+                        
+                        return (
+                          <tr 
+                            key={corr.id} 
+                            className={`border-b border-white/5 hover:bg-white/5 transition-colors ${
+                              selectedCorrectionIds.includes(corr.id) ? 'bg-gold-500/5' : ''
+                            }`}
+                          >
+                            <td className="p-4 text-center">
+                              <input
+                                type="checkbox"
+                                checked={selectedCorrectionIds.includes(corr.id)}
+                                onChange={() => handleSelectCorrection(corr.id)}
+                                className="rounded border-white/10 bg-slate-950 text-gold-500 focus:ring-0 focus:ring-offset-0 cursor-pointer"
+                              />
+                            </td>
+                            <td className="p-4 font-bold text-white">
+                              {corr.kata ? corr.kata.kata : `ID: ${corr.kata_id}`}
+                            </td>
+                            <td className="p-4 font-semibold text-slate-300">{corr.pelapor_info}</td>
+                            
+                            {/* Before correction column */}
+                            <td className="p-4 text-rose-400 font-medium">
+                              {isJson ? (
+                                <div className="space-y-1.5">
+                                  <div className="line-through font-bold">Kata: {corr.kata_salah}</div>
+                                  {corr.kata && (
+                                    <>
+                                      <div className="line-through">Arti: {corr.kata.arti}</div>
+                                      {corr.kata.contoh && (
+                                        <div className="text-[10px] text-slate-500 leading-normal italic line-through">
+                                          Contoh: {corr.kata.contoh}
+                                        </div>
+                                      )}
+                                    </>
+                                  )}
+                                </div>
+                              ) : (
+                                <span className="line-through font-bold">{corr.kata_salah}</span>
+                              )}
+                            </td>
+
+                            {/* Proposed correction column */}
+                            <td className="p-4 text-emerald-400 font-medium">
+                              {isJson ? (
+                                <div className="space-y-1.5">
+                                  <div className="font-bold">Kata: {parsed.kata}</div>
+                                  <div>Arti: {parsed.arti}</div>
+                                  {parsed.contoh && (
+                                    <div className="text-[10px] text-slate-300 leading-normal italic">
+                                      Contoh: {parsed.contoh}
+                                    </div>
+                                  )}
+                                </div>
+                              ) : (
+                                <span className="font-bold">{corr.usulan_perbaikan}</span>
+                              )}
+                            </td>
+
+                            <td className="p-4 text-slate-400 max-w-xs">{corr.alasan}</td>
+                            <td className="p-4 text-slate-500 italic">{corr.sumber || '-'}</td>
+                            <td className="p-4">
+                              <span className={`px-2.5 py-0.5 rounded text-[10px] font-bold ${corr.status === 'menunggu'
+                                  ? 'bg-amber-500/10 text-amber-500 border border-amber-500/25 animate-pulse'
+                                  : corr.status === 'disetujui'
+                                    ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20'
+                                    : 'bg-rose-500/10 text-rose-500 border border-rose-500/20'
+                                }`}>
+                                {corr.status}
+                              </span>
+                            </td>
+                            <td className="p-4">
+                              {corr.status === 'menunggu' ? (
+                                <div className="flex items-center justify-center space-x-2">
+                                  <button
+                                    onClick={() => handleApproveCorrection(corr.id)}
+                                    className="p-2 bg-emerald-500/10 hover:bg-emerald-500 border border-emerald-500/20 hover:border-transparent text-emerald-500 hover:text-slate-950 rounded-lg transition-all"
+                                    title="Setujui Usulan"
+                                  >
+                                    <Check className="h-3.5 w-3.5" />
+                                  </button>
+                                  <button
+                                    onClick={() => handleRejectCorrection(corr.id)}
+                                    className="p-2 bg-rose-500/10 hover:bg-rose-500 border border-rose-500/20 hover:border-transparent text-rose-500 hover:text-white rounded-lg transition-all"
+                                    title="Tolak Usulan"
+                                  >
+                                    <X className="h-3.5 w-3.5" />
+                                  </button>
+                                </div>
+                              ) : (
+                                <span className="text-[10px] text-slate-500 italic text-center block">Tinjauan Selesai</span>
+                              )}
+                            </td>
+                          </tr>
+                        );
+                      })
+                    )}
+                  </tbody>
+                </table>
+              </div>
             </div>
-          </div>
-        )}
+          );
+        })()}
       </div>
 
         {/* CRUD MODAL FORM DRAWES */}
@@ -704,9 +1026,11 @@ export default function Admin() {
                       type="text"
                       required
                       value={wordForm.kata}
-                      onChange={(e) => setWordForm(prev => ({ ...prev, kata: e.target.value }))}
+                      onChange={(e) => handleWordFormChange('kata', e.target.value)}
                       placeholder="Masukkan kata"
-                      className="w-full bg-slate-950/60 border border-white/10 rounded-xl px-4 py-2.5 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-gold-500"
+                      className={`w-full bg-slate-950/60 border rounded-xl px-4 py-2.5 text-xs text-slate-100 placeholder-slate-500 focus:outline-none transition-all ${
+                        duplicateWarning ? 'border-amber-500/60 focus:border-amber-500' : 'border-white/10 focus:border-gold-500'
+                      }`}
                     />
                   </div>
 
@@ -716,19 +1040,31 @@ export default function Admin() {
                       type="text"
                       required
                       value={wordForm.arti}
-                      onChange={(e) => setWordForm(prev => ({ ...prev, arti: e.target.value }))}
+                      onChange={(e) => handleWordFormChange('arti', e.target.value)}
                       placeholder="Terjemahan bahasa"
                       className="w-full bg-slate-950/60 border border-white/10 rounded-xl px-4 py-2.5 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-gold-500"
                     />
                   </div>
                 </div>
 
+                {/* Duplicate Warning Banner */}
+                {duplicateWarning && !editingWord && (
+                  <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/25 flex items-start space-x-2">
+                    <AlertTriangle className="h-4 w-4 text-amber-500 flex-shrink-0 mt-0.5" />
+                    <div className="text-xs">
+                      <span className="font-bold text-amber-400 block">⚠️ Peringatan Data Ganda Terdeteksi!</span>
+                      <span className="text-amber-300/80 block mt-0.5">{duplicateWarning.message}</span>
+                      <span className="text-slate-400 block mt-1">Anda tetap bisa menambahkan, tapi pastikan ini bukan data duplikat.</span>
+                    </div>
+                  </div>
+                )}
+
                 <div className="grid grid-cols-3 gap-4">
                   <div className="space-y-1">
                     <label className="text-xs font-semibold text-slate-300">Bahasa:</label>
                     <select
                       value={wordForm.bahasa}
-                      onChange={(e) => setWordForm(prev => ({ ...prev, bahasa: e.target.value }))}
+                      onChange={(e) => handleWordFormChange('bahasa', e.target.value)}
                       className="w-full bg-slate-950 border border-white/10 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-gold-500"
                     >
                       <option value="ternate">Ternate</option>
@@ -774,6 +1110,11 @@ export default function Admin() {
                     placeholder="Tulis kalimat beserta artinya..."
                     className="w-full bg-slate-950/60 border border-white/10 rounded-xl px-4 py-2 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-gold-500 resize-none"
                   />
+                  <div className="text-[10px] text-slate-500 font-medium leading-relaxed px-1 mt-0.5">
+                    Format penulisan yang disarankan: <span className="text-gold-400/90 font-mono">Kalimat Daerah. (Terjemahan Indonesia.)</span>
+                    <br />
+                    Contoh: <span className="text-slate-400 italic">Ri tagi fola se sigi. (Saya pergi ke rumah dan mesjid.)</span>
+                  </div>
                 </div>
 
                 {formMsg.text && (
@@ -866,10 +1207,29 @@ export default function Admin() {
                 </div>
 
                 {importStatus && (
-                  <p className="p-3 bg-white/5 border border-white/5 rounded-xl text-xs font-bold text-gold-400 flex items-center">
-                    <AlertCircle className="h-4 w-4 mr-2" />
-                    <span>{importStatus}</span>
-                  </p>
+                  <div className="p-3 bg-white/5 border border-white/5 rounded-xl text-xs font-bold text-gold-400 space-y-2">
+                    <div className="flex items-center">
+                      <Info className="h-4 w-4 mr-2 flex-shrink-0" />
+                      <span>{importStatus}</span>
+                    </div>
+
+                    {/* Detailed skip report */}
+                    {importReport && importReport.skipped > 0 && (
+                      <div className="mt-2 p-2.5 bg-amber-500/5 border border-amber-500/15 rounded-lg space-y-1.5">
+                        <span className="text-[10px] text-amber-400 font-bold uppercase tracking-wider block">Data yang Dilewati (Sudah Ada):</span>
+                        <div className="max-h-32 overflow-y-auto space-y-1 pr-1">
+                          {importReport.skippedWords.map((sw, i) => (
+                            <div key={i} className="text-[10px] text-slate-400 flex items-center space-x-1">
+                              <XCircle className="h-3 w-3 text-amber-500 flex-shrink-0" />
+                              <span>
+                                <strong className="text-slate-300">"{sw.kata}"</strong> ({sw.bahasa}) — sudah ada di ID #{sw.existingId} dengan arti "{sw.existingArti}"
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 )}
 
                 <div className="flex space-x-3 pt-2">

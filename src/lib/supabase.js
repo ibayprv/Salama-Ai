@@ -23,6 +23,26 @@ if (supabaseUrl && supabaseAnonKey) {
 // Setiap kali versi seed berubah, naikkan angka ini agar data lama di-reset
 const SEED_DATA_VERSION = 'v6_full157';
 
+// Helper to parse JSON corrections
+const parseCorrectionUsulan = (usulanStr) => {
+  try {
+    const trimmed = usulanStr ? usulanStr.trim() : '';
+    if (trimmed.startsWith('{') && trimmed.endsWith('}')) {
+      const parsed = JSON.parse(trimmed);
+      if (parsed && typeof parsed === 'object') {
+        return {
+          kata: parsed.kata || '',
+          arti: parsed.arti || '',
+          contoh: parsed.contoh || ''
+        };
+      }
+    }
+  } catch (e) {
+    // Fallback
+  }
+  return { kata: usulanStr, arti: null, contoh: null };
+};
+
 const initCacheBuster = () => {
   if (typeof window === 'undefined') return;
   const currentVersion = localStorage.getItem('salama_data_version');
@@ -115,6 +135,20 @@ export const localDb = {
     setLocalData('salama_kata', filtered);
     return { error: null };
   },
+  async deleteWords(ids) {
+    const db = getLocalDb();
+    const numericIds = ids.map(Number);
+    const filtered = db.kata.filter(w => !numericIds.includes(Number(w.id)));
+    setLocalData('salama_kata', filtered);
+    return { error: null };
+  },
+  async deleteCorrections(ids) {
+    const db = getLocalDb();
+    const numericIds = ids.map(Number);
+    const filtered = db.laporan_koreksi.filter(c => !numericIds.includes(Number(c.id)));
+    setLocalData('salama_laporan_koreksi', filtered);
+    return { error: null };
+  },
   async likeWord(id) {
     const db = getLocalDb();
     const idx = db.kata.findIndex(w => w.id === Number(id));
@@ -188,10 +222,22 @@ export const localDb = {
     setLocalData('salama_laporan_koreksi', db.laporan_koreksi);
 
     if (status === 'disetujui' && corr.kata_id) {
-      await this.updateWord(corr.kata_id, {
-        kata: corr.usulan_perbaikan,
-        status: 'aktif'
-      });
+      const parsed = parseCorrectionUsulan(corr.usulan_perbaikan);
+      if (parsed.arti !== null) {
+        // Structured update
+        await this.updateWord(corr.kata_id, {
+          kata: parsed.kata,
+          arti: parsed.arti,
+          contoh: parsed.contoh,
+          status: 'aktif'
+        });
+      } else {
+        // Fallback older single-field format
+        await this.updateWord(corr.kata_id, {
+          kata: corr.usulan_perbaikan,
+          status: 'aktif'
+        });
+      }
     } else if (status === 'ditolak' && corr.kata_id) {
       await this.updateWord(corr.kata_id, { status: 'aktif' });
     }
@@ -369,12 +415,31 @@ export const db = {
 
   async insertWord(word) {
     if (isSupabaseConfigured) {
-      const { data, error } = await supabase
-        .from('kata')
-        .insert([word])
-        .select();
-      if (error) console.error("Supabase insertWord error:", error);
-      return { data, error };
+      // Calculate next ID on client to prevent sequence out-of-sync key violation errors
+      try {
+        const { data: maxWord, error: maxErr } = await supabase
+          .from('kata')
+          .select('id')
+          .order('id', { ascending: false })
+          .limit(1);
+        
+        let nextId = 1;
+        if (!maxErr && maxWord && maxWord.length > 0) {
+          nextId = maxWord[0].id + 1;
+        }
+
+        const wordWithId = { ...word, id: nextId };
+        const { data, error } = await supabase
+          .from('kata')
+          .insert([wordWithId])
+          .select();
+        
+        if (error) console.error("Supabase insertWord error:", error);
+        return { data, error };
+      } catch (err) {
+        console.error("Error inserting word:", err);
+        return { data: null, error: err };
+      }
     }
     return localDb.insertWord(word);
   },
@@ -402,6 +467,30 @@ export const db = {
       return { error };
     }
     return localDb.deleteWord(id);
+  },
+
+  async deleteWords(ids) {
+    if (isSupabaseConfigured) {
+      const { error } = await supabase
+        .from('kata')
+        .delete()
+        .in('id', ids);
+      if (error) console.error("Supabase deleteWords error:", error);
+      return { error };
+    }
+    return localDb.deleteWords(ids);
+  },
+
+  async deleteCorrections(ids) {
+    if (isSupabaseConfigured) {
+      const { error } = await supabase
+        .from('laporan_koreksi')
+        .delete()
+        .in('id', ids);
+      if (error) console.error("Supabase deleteCorrections error:", error);
+      return { error };
+    }
+    return localDb.deleteCorrections(ids);
   },
 
   async likeWord(id) {
@@ -540,10 +629,22 @@ export const db = {
         
         if (!error) {
           if (status === 'disetujui') {
-            await supabase.from('kata').update({
-              kata: corrData.usulan_perbaikan,
-              status: 'aktif'
-            }).eq('id', corrData.kata_id);
+            const parsed = parseCorrectionUsulan(corrData.usulan_perbaikan);
+            if (parsed.arti !== null) {
+              // Structured JSON update
+              const updates = { status: 'aktif' };
+              if (parsed.kata) updates.kata = parsed.kata;
+              if (parsed.arti) updates.arti = parsed.arti;
+              if (parsed.contoh) updates.contoh = parsed.contoh;
+              
+              await supabase.from('kata').update(updates).eq('id', corrData.kata_id);
+            } else {
+              // Legacy plain string fallback
+              await supabase.from('kata').update({
+                kata: corrData.usulan_perbaikan,
+                status: 'aktif'
+              }).eq('id', corrData.kata_id);
+            }
           } else if (status === 'ditolak') {
             await supabase.from('kata').update({ status: 'aktif' }).eq('id', corrData.kata_id);
           }

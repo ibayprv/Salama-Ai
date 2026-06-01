@@ -173,7 +173,9 @@ export default function Kamus() {
     setCorrectionForm({
       pelapor_info: '',
       kata_salah: word.kata,
-      usulan_perbaikan: '',
+      usulan_kata: word.kata || '',
+      usulan_arti: word.arti || '',
+      usulan_contoh: word.contoh || '',
       alasan: '',
       sumber: ''
     });
@@ -194,8 +196,12 @@ export default function Kamus() {
       setFormError('Nama atau info pelapor harus diisi.');
       return;
     }
-    if (!correctionForm.usulan_perbaikan.trim()) {
+    if (!correctionForm.usulan_kata.trim()) {
       setFormError('Usulan perbaikan kata harus diisi.');
+      return;
+    }
+    if (!correctionForm.usulan_arti.trim()) {
+      setFormError('Usulan perbaikan arti harus diisi.');
       return;
     }
     if (!correctionForm.alasan.trim()) {
@@ -208,8 +214,12 @@ export default function Kamus() {
       const payload = {
         kata_id: selectedWord.id,
         pelapor_info: correctionForm.pelapor_info,
-        kata_salah: correctionForm.kata_salah,
-        usulan_perbaikan: correctionForm.usulan_perbaikan,
+        kata_salah: selectedWord.kata,
+        usulan_perbaikan: JSON.stringify({
+          kata: correctionForm.usulan_kata.trim(),
+          arti: correctionForm.usulan_arti.trim(),
+          contoh: correctionForm.usulan_contoh.trim()
+        }),
         alasan: correctionForm.alasan,
         sumber: correctionForm.sumber
       };
@@ -597,15 +607,39 @@ export default function Kamus() {
                 />
               </div>
 
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <label className="text-[11px] font-semibold text-slate-300">Usulan Kata Baru:</label>
+                  <input
+                    type="text"
+                    required
+                    value={correctionForm.usulan_kata}
+                    onChange={(e) => setCorrectionForm(prev => ({ ...prev, usulan_kata: e.target.value }))}
+                    placeholder="Kata perbaikan"
+                    className="w-full bg-slate-950/60 border border-white/10 rounded-xl px-3 py-2 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-all"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[11px] font-semibold text-slate-300">Usulan Arti Baru:</label>
+                  <input
+                    type="text"
+                    required
+                    value={correctionForm.usulan_arti}
+                    onChange={(e) => setCorrectionForm(prev => ({ ...prev, usulan_arti: e.target.value }))}
+                    placeholder="Arti perbaikan"
+                    className="w-full bg-slate-950/60 border border-white/10 rounded-xl px-3 py-2 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-all"
+                  />
+                </div>
+              </div>
+
               <div className="space-y-1">
-                <label className="text-xs font-semibold text-slate-300">Usulan Perbaikan Kata / Arti:</label>
-                <input
-                  type="text"
-                  required
-                  value={correctionForm.usulan_perbaikan}
-                  onChange={(e) => setCorrectionForm(prev => ({ ...prev, usulan_perbaikan: e.target.value }))}
-                  placeholder="Ketik kata perbaikan yang benar beserta arti"
-                  className="w-full bg-slate-950/60 border border-white/10 rounded-xl px-4 py-2.5 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-all"
+                <label className="text-[11px] font-semibold text-slate-300">Usulan Contoh Kalimat Baru (Opsional):</label>
+                <textarea
+                  rows={2}
+                  value={correctionForm.usulan_contoh}
+                  onChange={(e) => setCorrectionForm(prev => ({ ...prev, usulan_contoh: e.target.value }))}
+                  placeholder="Contoh: Ri tagi fola se sigi. (Saya pergi ke rumah dan mesjid.)"
+                  className="w-full bg-slate-950/60 border border-white/10 rounded-xl px-4 py-2 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-all resize-none font-sans"
                 />
               </div>
 
