@@ -569,6 +569,15 @@ export default function Admin() {
     return Infinity;
   };
 
+  // Normalize legacy dialect slugs to current names
+  const normalizeDialek = (d) => {
+    if (!d) return '';
+    const slug = d.toLowerCase().trim();
+    if (slug === 'melayu_ternate') return 'ternate';
+    if (slug === 'sula_standar') return 'sula';
+    return slug;
+  };
+
   // Filter words inside admin panel
   const adminFilteredWords = words
     .filter(w => {
@@ -580,15 +589,16 @@ export default function Admin() {
       }
       // 2. Bahasa Filter
       if (filterBahasa !== 'all') {
-        if (w.bahasa !== filterBahasa) return false;
+        if (!w.bahasa || w.bahasa.toLowerCase() !== filterBahasa.toLowerCase()) return false;
       }
       // 3. Kelas Kata Filter
       if (filterKelasKata !== 'all') {
-        if (w.kelas_kata !== filterKelasKata) return false;
+        if (!w.kelas_kata || w.kelas_kata.toLowerCase() !== filterKelasKata.toLowerCase()) return false;
       }
-      // 4. Dialek Filter
+      // 4. Dialek Filter — normalize legacy dialect slugs before comparing
       if (filterDialek !== 'all') {
-        if (w.dialek !== filterDialek) return false;
+        const normalizedDialek = normalizeDialek(w.dialek);
+        if (normalizedDialek !== filterDialek.toLowerCase()) return false;
       }
       return true;
     })
@@ -861,10 +871,10 @@ export default function Admin() {
                     </th>
                     <th className="p-4 text-center w-12">ID</th>
                     <th className="p-4">Kata</th>
-                    <th className="p-4">Bahasa</th>
-                    <th className="p-4">Dialek</th>
                     <th className="p-4">Arti</th>
                     <th className="p-4">Kelas</th>
+                    <th className="p-4">Dialek</th>
+                    <th className="p-4">Bahasa</th>
                     <th className="p-4">Status</th>
                     <th className="p-4 text-center">Aksi</th>
                   </tr>
@@ -896,10 +906,10 @@ export default function Admin() {
                         </td>
                         <td className="p-4 text-center font-bold text-slate-500">{word.id}</td>
                         <td className="p-4 font-bold text-white text-sm">{word.kata}</td>
-                        <td className="p-4 uppercase font-semibold text-slate-300">{word.bahasa}</td>
-                        <td className="p-4 text-slate-400">{getDialekName(word.dialek)}</td>
                         <td className="p-4 text-slate-300 font-semibold">{word.arti}</td>
                         <td className="p-4 text-slate-400 font-semibold">{getKelasName(word.kelas_kata)}</td>
+                        <td className="p-4 text-slate-400">{getDialekName(word.dialek)}</td>
+                        <td className="p-4 uppercase font-semibold text-slate-300">{word.bahasa}</td>
                         <td className="p-4">
                           <span className={`px-2.5 py-0.5 rounded text-[10px] font-bold ${word.status === 'dalam_review'
                               ? 'bg-amber-500/10 text-amber-500 border border-amber-500/20'

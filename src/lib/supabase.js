@@ -442,6 +442,11 @@ export const db = {
               this.syncMissingWords().catch(console.error);
             }, 100);
           }
+          // Normalize legacy dialect slugs client-side
+          data.forEach(w => {
+            if (w.dialek === 'melayu_ternate') w.dialek = 'ternate';
+            if (w.dialek === 'sula_standar') w.dialek = 'sula';
+          });
           return { data, error };
         } else {
           // Auto-seed words if the table is empty
@@ -465,6 +470,13 @@ export const db = {
 
   async getAllWordsAdmin() {
     if (isSupabaseConfigured) {
+      // Ensure dialect names are migrated in Supabase
+      const migrated = typeof window !== 'undefined' ? sessionStorage.getItem('salama_dialek_migrated') : null;
+      if (!migrated) {
+        setTimeout(() => { this.migrateDialekNames().catch(console.error); }, 50);
+        if (typeof window !== 'undefined') sessionStorage.setItem('salama_dialek_migrated', 'true');
+      }
+
       const { data, error } = await supabase
         .from('kata')
         .select('*')
@@ -475,11 +487,24 @@ export const db = {
             this.syncMissingWords().catch(console.error);
           }, 100);
         }
+        // Normalize legacy dialect slugs client-side as fallback
+        data.forEach(w => {
+          if (w.dialek === 'melayu_ternate') w.dialek = 'ternate';
+          if (w.dialek === 'sula_standar') w.dialek = 'sula';
+        });
       }
       if (error) console.error("Supabase getAllWordsAdmin error:", error);
       return { data, error };
     }
-    return localDb.getAllWordsAdmin();
+    // Also normalize local data
+    const result = await localDb.getAllWordsAdmin();
+    if (result.data) {
+      result.data.forEach(w => {
+        if (w.dialek === 'melayu_ternate') w.dialek = 'ternate';
+        if (w.dialek === 'sula_standar') w.dialek = 'sula';
+      });
+    }
+    return result;
   },
 
   async insertWord(word) {
