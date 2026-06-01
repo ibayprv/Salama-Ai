@@ -20,7 +20,7 @@ export default function Header() {
   }, []);
 
   const navItems = [
-    { name: 'Home', href: '/', icon: Home },
+    { name: 'Beranda', href: '/', icon: Home },
     { name: 'Kamus', href: '/kamus', icon: BookOpen },
     { name: 'Chatbot AI', href: '/chatbot', icon: MessageSquare },
     { name: 'Kuis', href: '/kuis', icon: Award },
