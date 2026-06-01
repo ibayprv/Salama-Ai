@@ -164,6 +164,26 @@ export default function Admin() {
     }
   };
 
+  const handleResequenceIds = async () => {
+    const confirmReseq = window.confirm('Apakah Anda yakin ingin merapikan dan mengurutkan ulang semua ID kosakata secara berurutan tanpa celah? Tindakan ini akan menata ulang ID kata yang sempat terhapus sehingga menjadi rapi dan teratur.');
+    if (!confirmReseq) return;
+
+    setLoading(true);
+    try {
+      const res = await db.resequenceIds();
+      if (res && !res.success) {
+        throw new Error(res.error || 'Gagal merapikan ID.');
+      }
+      await fetchAdminData();
+      alert('Semua ID kosakata berhasil dirapikan dan diurutkan ulang dengan sukses!');
+    } catch (err) {
+      console.error(err);
+      alert(`Gagal merapikan ID: ${err.message || err}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const fetchAdminData = async () => {
     setLoading(true);
     // Fetch all words (including those in review)
@@ -610,10 +630,13 @@ export default function Admin() {
   // Filter words inside admin panel
   const adminFilteredWords = words
     .filter(w => {
-      // 1. Search Query
+      // 1. Search Query (ID, Word, or Meaning)
       if (adminSearch.trim()) {
-        const query = adminSearch.toLowerCase();
-        const matchesQuery = w.kata.toLowerCase().includes(query) || w.arti.toLowerCase().includes(query);
+        const query = adminSearch.toLowerCase().trim();
+        const matchesQuery = 
+          w.id.toString().includes(query) ||
+          w.kata.toLowerCase().includes(query) || 
+          w.arti.toLowerCase().includes(query);
         if (!matchesQuery) return false;
       }
       // 2. Bahasa Filter
@@ -792,6 +815,15 @@ export default function Admin() {
                 >
                   <Download className="h-4 w-4 text-ocean-500" />
                   <span>Ekspor CSV</span>
+                </button>
+                <button
+                  onClick={handleResequenceIds}
+                  disabled={loading}
+                  className="px-4 py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 hover:text-white text-xs font-bold rounded-xl transition-all flex items-center space-x-1.5 disabled:opacity-50"
+                  title="Rapikan & Urutkan ulang semua ID kosakata tanpa ada celah terlewat"
+                >
+                  <RefreshCw className={`h-4 w-4 text-emerald-500 ${loading ? 'animate-spin' : ''}`} />
+                  <span>Rapikan ID</span>
                 </button>
                 <button
                   onClick={handleOpenCreate}

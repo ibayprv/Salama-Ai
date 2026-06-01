@@ -295,6 +295,36 @@ export const localDb = {
     return { error: null };
   },
 
+  async resequenceIds() {
+    const db = getLocalDb();
+    if (!db.kata || db.kata.length === 0) return { success: true };
+    
+    // Sort words ascending by current id
+    db.kata.sort((a, b) => a.id - b.id);
+    
+    for (let i = 0; i < db.kata.length; i++) {
+      const oldId = db.kata[i].id;
+      const newId = i + 1;
+      if (oldId !== newId) {
+        // Update references first
+        db.laporan_koreksi.forEach(c => {
+          if (c.kata_id === oldId) c.kata_id = newId;
+        });
+        db.komentar_kata.forEach(c => {
+          if (c.kata_id === oldId) c.kata_id = newId;
+        });
+        // Then update the word ID
+        db.kata[i].id = newId;
+      }
+    }
+    
+    setLocalData('salama_kata', db.kata);
+    setLocalData('salama_laporan_koreksi', db.laporan_koreksi);
+    setLocalData('salama_komentar_kata', db.komentar_kata);
+    
+    return { success: true };
+  },
+
   // Rating
   async getRatings() {
     const db = getLocalDb();
@@ -422,13 +452,14 @@ export const db = {
 
   // Resequence IDs after deletion in Supabase
   async resequenceSupabaseIds() {
-    if (!isSupabaseConfigured) return;
+    if (!isSupabaseConfigured) return { success: false, error: 'Supabase belum terkonfigurasi.' };
     try {
       const { data: words, error: wErr } = await supabase
         .from('kata')
         .select('id')
         .order('id', { ascending: true });
-      if (wErr || !words || words.length === 0) return;
+      if (wErr) throw wErr;
+      if (!words || words.length === 0) return { success: true };
 
       for (let i = 0; i < words.length; i++) {
         const oldId = words[i].id;
@@ -441,10 +472,25 @@ export const db = {
           await supabase.from('kata').update({ id: newId }).eq('id', oldId);
         }
       }
+      
+      // Attempt to fix sequence value if RPC exists
+      try {
+        await supabase.rpc('setval_kata_id', { next_val: words.length + 1 }).catch(() => {});
+      } catch (_) {}
+
       console.log('[Salama AI] ID kosakata berhasil diurutkan ulang.');
+      return { success: true };
     } catch (e) {
       console.error('[Salama AI] Gagal mengurutkan ulang ID:', e);
+      return { success: false, error: e.message || 'Gagal merapikan ID kosakata.' };
     }
+  },
+
+  async resequenceIds() {
+    if (isSupabaseConfigured) {
+      return this.resequenceSupabaseIds();
+    }
+    return localDb.resequenceIds();
   },
 
   async getWords() {
