@@ -16,6 +16,33 @@ if (supabaseUrl && supabaseAnonKey) {
   }
 }
 
+// Helper functions to handle dialect mappings for database check constraint (kata_dialek_check)
+// Database check constraint only allows: 'melayu_ternate', 'sula_standar', 'tidore'
+const denormalizeDialek = (dialek) => {
+  if (!dialek) return dialek;
+  const slug = dialek.toLowerCase().trim();
+  if (slug === 'ternate') return 'melayu_ternate';
+  if (slug === 'sula') return 'sula_standar';
+  return dialek;
+};
+
+const denormalizeWord = (word) => {
+  if (!word) return word;
+  const newWord = { ...word };
+  if (newWord.dialek) {
+    newWord.dialek = denormalizeDialek(newWord.dialek);
+  }
+  return newWord;
+};
+
+const normalizeWord = (word) => {
+  if (!word) return word;
+  const newWord = { ...word };
+  if (newWord.dialek === 'melayu_ternate') newWord.dialek = 'ternate';
+  if (newWord.dialek === 'sula_standar') newWord.dialek = 'sula';
+  return newWord;
+};
+
 // ==================== MOCK LOCAL STORAGE DATABASE ====================
 // Berfungsi sebagai database lokal penuh jika Supabase belum terhubung
 
@@ -361,7 +388,7 @@ export const db = {
             id: currentId
           };
           currentId++;
-          return newWord;
+          return denormalizeWord(newWord);
         });
 
         console.log(`[Salama AI] Menyinkronkan ${missing.length} kata baru ke Supabase dengan ID berkisar dari ${maxId + 1} hingga ${currentId - 1}...`);
@@ -509,30 +536,79 @@ export const db = {
 
   async insertWord(word) {
     if (isSupabaseConfigured) {
-      // Calculate next ID on client to prevent sequence out-of-sync key violation errors
       try {
-        const { data: maxWord, error: maxErr } = await supabase
-          .from('kata')
-          .select('id')
-          .order('id', { ascending: false })
-          .limit(1);
+        // Strategy 1: Let Supabase/Postgres auto-generate the ID (most reliable)
+        const denormalizedWord = denormalizeWord(word);
+        const wordWithoutId = { ...denormalizedWord };
+        delete wordWithoutId.id; // Remove any client-provided ID
         
-        let nextId = 1;
-        if (!maxErr && maxWord && maxWord.length > 0) {
-          nextId = maxWord[0].id + 1;
-        }
-
-        const wordWithId = { ...word, id: nextId };
         const { data, error } = await supabase
           .from('kata')
-          .insert([wordWithId])
+          .insert([wordWithoutId])
           .select();
         
-        if (error) console.error("Supabase insertWord error:", error);
-        return { data, error };
+        if (!error && data && data.length > 0) {
+          return { data: data.map(normalizeWord), error: null };
+        }
+
+        // Strategy 2: If auto-ID fails (e.g. sequence out of sync), manually calculate next ID
+        if (error) {
+          console.warn("[Salama AI] Auto-ID insert failed, trying manual ID calculation:", error.message);
+          
+          const { data: maxWord } = await supabase
+            .from('kata')
+            .select('id')
+            .order('id', { ascending: false })
+            .limit(1);
+          
+          let nextId = 1;
+          if (maxWord && maxWord.length > 0) {
+            nextId = maxWord[0].id + 1;
+          }
+
+          const wordWithId = { ...wordWithoutId, id: nextId };
+          const { data: data2, error: error2 } = await supabase
+            .from('kata')
+            .insert([wordWithId])
+            .select();
+          
+          if (!error2 && data2 && data2.length > 0) {
+            // Fix the Postgres sequence so future auto-IDs work correctly
+            try {
+              await supabase.rpc('setval_kata_id', { next_val: nextId + 1 }).catch(() => {});
+            } catch (_) { /* RPC may not exist — safe to ignore */ }
+            return { data: data2.map(normalizeWord), error: null };
+          }
+
+          // Strategy 3: If still failing (race condition), try with an even higher ID
+          if (error2 && error2.code === '23505') {
+            console.warn("[Salama AI] Duplicate key on retry, trying higher ID...");
+            const higherWordWithId = { ...wordWithoutId, id: nextId + 1 };
+            const { data: data3, error: error3 } = await supabase
+              .from('kata')
+              .insert([higherWordWithId])
+              .select();
+            
+            if (!error3 && data3 && data3.length > 0) {
+              return { data: data3.map(normalizeWord), error: null };
+            }
+            
+            // All strategies failed
+            const errMsg = error3?.message || error2?.message || 'Gagal menyimpan data setelah beberapa percobaan.';
+            console.error("[Salama AI] All insert strategies failed:", errMsg);
+            return { data: null, error: { message: errMsg } };
+          }
+
+          // Non-duplicate error on retry
+          const errMsg = error2?.message || 'Gagal menyimpan data.';
+          console.error("[Salama AI] Manual ID insert failed:", errMsg);
+          return { data: null, error: { message: errMsg } };
+        }
+
+        return { data: data ? data.map(normalizeWord) : data, error };
       } catch (err) {
-        console.error("Error inserting word:", err);
-        return { data: null, error: err };
+        console.error("[Salama AI] insertWord exception:", err);
+        return { data: null, error: { message: err.message || 'Koneksi ke database gagal.' } };
       }
     }
     return localDb.insertWord(word);
@@ -540,13 +616,29 @@ export const db = {
 
   async updateWord(id, updates) {
     if (isSupabaseConfigured) {
-      const { data, error } = await supabase
-        .from('kata')
-        .update(updates)
-        .eq('id', id)
-        .select();
-      if (error) console.error("Supabase updateWord error:", error);
-      return { data, error };
+      try {
+        const denormalizedUpdates = denormalizeWord(updates);
+        const { data, error } = await supabase
+          .from('kata')
+          .update(denormalizedUpdates)
+          .eq('id', id)
+          .select();
+        
+        if (error) {
+          console.error("[Salama AI] updateWord error:", error);
+          return { data: null, error: { message: error.message || 'Gagal memperbarui data.' } };
+        }
+        
+        // Check if the update actually matched a row
+        if (!data || data.length === 0) {
+          return { data: null, error: { message: `Kata dengan ID ${id} tidak ditemukan di database.` } };
+        }
+        
+        return { data: data.map(normalizeWord), error: null };
+      } catch (err) {
+        console.error("[Salama AI] updateWord exception:", err);
+        return { data: null, error: { message: err.message || 'Koneksi ke database gagal.' } };
+      }
     }
     return localDb.updateWord(id, updates);
   },
@@ -698,16 +790,22 @@ export const db = {
 
   async insertCorrection(correction) {
     if (isSupabaseConfigured) {
-      const { data, error } = await supabase
-        .from('laporan_koreksi')
-        .insert([correction])
-        .select();
-      if (!error) {
-        await supabase.from('kata').update({ status: 'dalam_review' }).eq('id', correction.kata_id);
-      } else {
-        console.error("Supabase insertCorrection error:", error);
+      try {
+        const { data, error } = await supabase
+          .from('laporan_koreksi')
+          .insert([correction])
+          .select();
+        if (!error) {
+          await supabase.from('kata').update({ status: 'dalam_review' }).eq('id', correction.kata_id);
+        } else {
+          console.error("[Salama AI] insertCorrection error:", error);
+          return { data: null, error: { message: error.message || 'Gagal mengirim laporan koreksi.' } };
+        }
+        return { data, error: null };
+      } catch (err) {
+        console.error("[Salama AI] insertCorrection exception:", err);
+        return { data: null, error: { message: err.message || 'Koneksi ke database gagal.' } };
       }
-      return { data, error };
     }
     return localDb.insertCorrection(correction);
   },

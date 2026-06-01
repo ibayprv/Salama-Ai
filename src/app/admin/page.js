@@ -297,7 +297,7 @@ export default function Admin() {
     setFormMsg({ type: '', text: '' });
 
     if (!wordForm.kata.trim() || !wordForm.arti.trim()) {
-      setFormMsg({ type: 'error', text: 'Semua kolom wajib diisi.' });
+      setFormMsg({ type: 'error', text: 'Kolom "Kosakata" dan "Arti" wajib diisi.' });
       return;
     }
 
@@ -316,10 +316,15 @@ export default function Admin() {
       if (!confirmAdd) return;
     }
 
+    // Prevent double submission
+    setLoading(true);
+    setFormMsg({ type: 'info', text: 'Menyimpan data...' });
+
     try {
+      let res;
       if (editingWord) {
         // Edit Mode
-        const res = await db.updateWord(editingWord.id, {
+        res = await db.updateWord(editingWord.id, {
           kata: wordForm.kata,
           bahasa: wordForm.bahasa,
           dialek: wordForm.dialek,
@@ -328,11 +333,9 @@ export default function Admin() {
           contoh: wordForm.contoh,
           status: editingWord.status // preserve status
         });
-        if (res.error) throw new Error(res.error);
-        setFormMsg({ type: 'success', text: 'Kosakata berhasil diperbarui!' });
       } else {
         // Create Mode
-        const res = await db.insertWord({
+        res = await db.insertWord({
           kata: wordForm.kata,
           bahasa: wordForm.bahasa,
           dialek: wordForm.dialek,
@@ -341,16 +344,42 @@ export default function Admin() {
           contoh: wordForm.contoh,
           status: 'aktif'
         });
-        if (res.error) throw new Error(res.error);
-        setFormMsg({ type: 'success', text: 'Kosakata baru berhasil ditambahkan!' });
-        setDuplicateWarning(null);
       }
+
+      // Extract error message properly (handles both string and object errors)
+      if (res.error) {
+        const errMsg = typeof res.error === 'string'
+          ? res.error
+          : res.error?.message || res.error?.details || JSON.stringify(res.error);
+        console.error('[Salama AI] Form submit error:', res.error);
+        setFormMsg({
+          type: 'error',
+          text: `Gagal ${editingWord ? 'memperbarui' : 'menambahkan'} kosakata: ${errMsg}`
+        });
+        setLoading(false);
+        return;
+      }
+
+      // Success
+      setFormMsg({
+        type: 'success',
+        text: editingWord
+          ? 'Kosakata berhasil diperbarui!'
+          : 'Kosakata baru berhasil ditambahkan!'
+      });
+      setDuplicateWarning(null);
 
       await fetchAdminData();
       setTimeout(() => setShowForm(false), 1500);
     } catch (err) {
-      console.error(err);
-      setFormMsg({ type: 'error', text: 'Terjadi kesalahan sistem.' });
+      console.error('[Salama AI] Form submit exception:', err);
+      const errDetail = err?.message || 'Koneksi ke database gagal. Periksa koneksi internet Anda.';
+      setFormMsg({
+        type: 'error',
+        text: `Gagal menyimpan: ${errDetail}`
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -1247,11 +1276,18 @@ export default function Admin() {
                 </div>
 
                 {formMsg.text && (
-                  <div className={`p-3 rounded-lg flex items-center text-xs font-bold ${formMsg.type === 'success'
+                  <div className={`p-3 rounded-lg flex items-center text-xs font-bold ${
+                    formMsg.type === 'success'
                       ? 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-500'
+                      : formMsg.type === 'info'
+                      ? 'bg-blue-500/10 border border-blue-500/20 text-blue-400'
                       : 'bg-rose-500/10 border border-rose-500/20 text-rose-500'
                     }`}>
-                    <AlertCircle className="h-4 w-4 mr-2" />
+                    {formMsg.type === 'info' ? (
+                      <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                    ) : (
+                      <AlertCircle className="h-4 w-4 mr-2" />
+                    )}
                     <span>{formMsg.text}</span>
                   </div>
                 )}
@@ -1260,15 +1296,17 @@ export default function Admin() {
                   <button
                     type="button"
                     onClick={() => setShowForm(false)}
-                    className="flex-1 py-2.5 bg-slate-900 border border-white/5 text-slate-400 hover:text-white rounded-xl text-xs font-bold transition-all"
+                    disabled={loading}
+                    className="flex-1 py-2.5 bg-slate-900 border border-white/5 text-slate-400 hover:text-white rounded-xl text-xs font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Batal
                   </button>
                   <button
                     type="submit"
-                    className="flex-1 py-2.5 bg-gradient-to-r from-gold-500 to-gold-600 hover:from-gold-400 hover:to-gold-500 text-slate-950 rounded-xl text-xs font-bold transition-all shadow-lg"
+                    disabled={loading}
+                    className="flex-1 py-2.5 bg-gradient-to-r from-gold-500 to-gold-600 hover:from-gold-400 hover:to-gold-500 text-slate-950 rounded-xl text-xs font-bold transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    Simpan Data
+                    {loading ? 'Menyimpan...' : 'Simpan Data'}
                   </button>
                 </div>
               </form>

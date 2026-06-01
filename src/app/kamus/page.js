@@ -225,7 +225,15 @@ export default function Kamus() {
       };
 
       const res = await db.insertCorrection(payload);
-      if (res.error) throw new Error(res.error);
+      if (res.error) {
+        const errMsg = typeof res.error === 'string'
+          ? res.error
+          : res.error?.message || res.error?.details || 'Terjadi kesalahan saat mengirim laporan.';
+        console.error('[Salama AI] insertCorrection error:', res.error);
+        setFormError(errMsg);
+        setIsSubmitting(false);
+        return;
+      }
 
       await fetchWords();
 
@@ -234,8 +242,9 @@ export default function Kamus() {
         handleCloseCorrection();
       }, 2500);
     } catch (err) {
-      console.error(err);
-      setFormError('Gagal mengirim laporan. Silakan coba lagi.');
+      console.error('[Salama AI] Correction submit exception:', err);
+      const errDetail = err?.message || 'Koneksi ke database gagal. Periksa koneksi internet Anda.';
+      setFormError(`Gagal mengirim laporan: ${errDetail}`);
     } finally {
       setIsSubmitting(false);
     }
