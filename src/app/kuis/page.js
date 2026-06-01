@@ -231,8 +231,8 @@ export default function Kuis() {
             <div className="grid grid-cols-1 gap-3">
               {[
                 { slug: 'campuran', name: 'Bahasa Campuran', desc: 'Kosakata Ternate & Sula acak' },
-                { slug: 'ternate', name: 'Bahasa Ternate', desc: 'Dialek Melayu Ternate & Tidore' },
-                { slug: 'sula', name: 'Bahasa Sula', desc: 'Bahasa daerah Sula standar' }
+                { slug: 'ternate', name: 'Bahasa Ternate', desc: 'Dialek Ternate & Tidore' },
+                { slug: 'sula', name: 'Bahasa Sula', desc: 'Bahasa daerah Sula' }
               ].map((cat) => (
                 <button
                   key={cat.slug}

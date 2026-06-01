@@ -21,7 +21,7 @@ if (supabaseUrl && supabaseAnonKey) {
 
 // CACHE BUSTER: Hapus data lama (versi sebelumnya dengan 300 kata bernomor)
 // Setiap kali versi seed berubah, naikkan angka ini agar data lama di-reset
-const SEED_DATA_VERSION = 'v6_full157';
+const SEED_DATA_VERSION = 'v7_dialek_ternate_sula';
 
 // Helper to parse JSON corrections
 const parseCorrectionUsulan = (usulanStr) => {
@@ -133,6 +133,8 @@ export const localDb = {
     const db = getLocalDb();
     const filtered = db.kata.filter(w => w.id !== Number(id));
     setLocalData('salama_kata', filtered);
+    // Resequence IDs after deletion
+    this.resequenceLocalIds();
     return { error: null };
   },
   async deleteWords(ids) {
@@ -140,7 +142,28 @@ export const localDb = {
     const numericIds = ids.map(Number);
     const filtered = db.kata.filter(w => !numericIds.includes(Number(w.id)));
     setLocalData('salama_kata', filtered);
+    // Resequence IDs after bulk deletion
+    this.resequenceLocalIds();
     return { error: null };
+  },
+  resequenceLocalIds() {
+    const db = getLocalDb();
+    const sortedWords = [...db.kata].sort((a, b) => a.id - b.id);
+    const idMap = {};
+    sortedWords.forEach((word, index) => {
+      const oldId = word.id;
+      const newId = index + 1;
+      if (oldId !== newId) {
+        idMap[oldId] = newId;
+        word.id = newId;
+      }
+    });
+    // Update references in comments and corrections
+    db.komentar_kata.forEach(c => { if (idMap[c.kata_id]) c.kata_id = idMap[c.kata_id]; });
+    db.laporan_koreksi.forEach(c => { if (idMap[c.kata_id]) c.kata_id = idMap[c.kata_id]; });
+    setLocalData('salama_kata', sortedWords);
+    setLocalData('salama_komentar_kata', db.komentar_kata);
+    setLocalData('salama_laporan_koreksi', db.laporan_koreksi);
   },
   async deleteCorrections(ids) {
     const db = getLocalDb();
@@ -358,8 +381,54 @@ export const db = {
     }
   },
 
+  // Auto-migrate old dialect names in Supabase
+  async migrateDialekNames() {
+    if (!isSupabaseConfigured) return;
+    try {
+      await supabase.from('kata').update({ dialek: 'ternate' }).eq('dialek', 'melayu_ternate');
+      await supabase.from('kata').update({ dialek: 'sula' }).eq('dialek', 'sula_standar');
+      console.log('[Salama AI] Migrasi nama dialek selesai (melayu_ternate → ternate, sula_standar → sula).');
+    } catch (e) {
+      console.error('[Salama AI] Gagal migrasi dialek:', e);
+    }
+  },
+
+  // Resequence IDs after deletion in Supabase
+  async resequenceSupabaseIds() {
+    if (!isSupabaseConfigured) return;
+    try {
+      const { data: words, error: wErr } = await supabase
+        .from('kata')
+        .select('id')
+        .order('id', { ascending: true });
+      if (wErr || !words || words.length === 0) return;
+
+      for (let i = 0; i < words.length; i++) {
+        const oldId = words[i].id;
+        const newId = i + 1;
+        if (oldId !== newId) {
+          // Update references first
+          await supabase.from('laporan_koreksi').update({ kata_id: newId }).eq('kata_id', oldId);
+          await supabase.from('komentar_kata').update({ kata_id: newId }).eq('kata_id', oldId);
+          // Then update the word ID
+          await supabase.from('kata').update({ id: newId }).eq('id', oldId);
+        }
+      }
+      console.log('[Salama AI] ID kosakata berhasil diurutkan ulang.');
+    } catch (e) {
+      console.error('[Salama AI] Gagal mengurutkan ulang ID:', e);
+    }
+  },
+
   async getWords() {
     if (isSupabaseConfigured) {
+      // One-time dialect name migration
+      const migrated = typeof window !== 'undefined' ? sessionStorage.getItem('salama_dialek_migrated') : null;
+      if (!migrated) {
+        setTimeout(() => { this.migrateDialekNames().catch(console.error); }, 50);
+        if (typeof window !== 'undefined') sessionStorage.setItem('salama_dialek_migrated', 'true');
+      }
+
       const { data, error } = await supabase
         .from('kata')
         .select('*')
@@ -464,6 +533,8 @@ export const db = {
         .delete()
         .eq('id', id);
       if (error) console.error("Supabase deleteWord error:", error);
+      // Resequence IDs after deletion
+      if (!error) await this.resequenceSupabaseIds();
       return { error };
     }
     return localDb.deleteWord(id);
@@ -476,6 +547,8 @@ export const db = {
         .delete()
         .in('id', ids);
       if (error) console.error("Supabase deleteWords error:", error);
+      // Resequence IDs after bulk deletion
+      if (!error) await this.resequenceSupabaseIds();
       return { error };
     }
     return localDb.deleteWords(ids);

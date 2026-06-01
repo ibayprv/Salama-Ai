@@ -241,9 +241,64 @@ export default function Kamus() {
     }
   };
 
+  const parseIndonesianNumber = (text) => {
+    if (!text) return Infinity;
+    const clean = text.toLowerCase().trim();
+    const digitMatch = clean.match(/\d+/);
+    if (digitMatch) return parseInt(digitMatch[0], 10);
+    const mapping = [
+      { key: 'dua puluh satu', val: 21 },
+      { key: 'dua puluh dua', val: 22 },
+      { key: 'dua puluh tiga', val: 23 },
+      { key: 'dua puluh empat', val: 24 },
+      { key: 'dua puluh lima', val: 25 },
+      { key: 'dua puluh enam', val: 26 },
+      { key: 'dua puluh tujuh', val: 27 },
+      { key: 'dua puluh delapan', val: 28 },
+      { key: 'dua puluh sembilan', val: 29 },
+      { key: 'sembilan belas', val: 19 },
+      { key: 'delapan belas', val: 18 },
+      { key: 'tujuh belas', val: 17 },
+      { key: 'enam belas', val: 16 },
+      { key: 'lima belas', val: 15 },
+      { key: 'empat belas', val: 14 },
+      { key: 'tiga belas', val: 13 },
+      { key: 'dua belas', val: 12 },
+      { key: 'sebelas', val: 11 },
+      { key: 'sepuluh', val: 10 },
+      { key: 'sembilan', val: 9 },
+      { key: 'delapan', val: 8 },
+      { key: 'tujuh', val: 7 },
+      { key: 'enam', val: 6 },
+      { key: 'lima', val: 5 },
+      { key: 'empat', val: 4 },
+      { key: 'tiga', val: 3 },
+      { key: 'dua', val: 2 },
+      { key: 'satu', val: 1 },
+      { key: 'nol', val: 0 },
+      { key: 'kosong', val: 0 },
+      { key: 'pertama', val: 1 },
+      { key: 'kedua', val: 2 },
+      { key: 'ketiga', val: 3 },
+      { key: 'keempat', val: 4 },
+      { key: 'kelima', val: 5 },
+      { key: 'keenam', val: 6 },
+      { key: 'ketujuh', val: 7 },
+      { key: 'kedelapan', val: 8 },
+      { key: 'kesembilan', val: 9 },
+      { key: 'kesepuluh', val: 10 }
+    ];
+    for (const item of mapping) {
+      if (clean === item.key || clean.startsWith(item.key + ' ') || clean.includes(' ' + item.key + ' ') || clean.endsWith(' ' + item.key)) {
+        return item.val;
+      }
+    }
+    return Infinity;
+  };
+
   const query = searchQuery.trim().toLowerCase();
   
-  const filteredWords = words.filter(w => {
+  const rawFilteredWords = words.filter(w => {
     if (filterBahasa !== 'semua' && w.bahasa.toLowerCase() !== filterBahasa) return false;
     if (filterKelas !== 'semua' && w.kelas_kata.toLowerCase() !== filterKelas) return false;
 
@@ -253,6 +308,15 @@ export default function Kamus() {
       return matchKata || matchArti;
     }
     return true;
+  });
+
+  const filteredWords = [...rawFilteredWords].sort((a, b) => {
+    if (a.kelas_kata === 'kata_bilangan' && b.kelas_kata === 'kata_bilangan') {
+      const valA = parseIndonesianNumber(a.arti);
+      const valB = parseIndonesianNumber(b.arti);
+      if (valA !== valB) return valA - valB;
+    }
+    return a.kata.localeCompare(b.kata);
   });
 
   const getSuggestions = () => {
@@ -282,9 +346,11 @@ export default function Kamus() {
 
   const getDialekName = (slug) => {
     const mappings = {
-      melayu_ternate: 'Melayu Ternate',
+      ternate: 'Ternate',
+      melayu_ternate: 'Ternate',
       tidore: 'Tidore',
-      sula_standar: 'Sula Standar'
+      sula: 'Sula',
+      sula_standar: 'Sula'
     };
     return mappings[slug] || slug;
   };

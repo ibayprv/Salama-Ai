@@ -35,7 +35,7 @@ export default function Admin() {
   const [wordForm, setWordForm] = useState({
     kata: '',
     bahasa: 'ternate',
-    dialek: 'melayu_ternate',
+    dialek: 'ternate',
     arti: '',
     kelas_kata: 'kata_benda',
     contoh: ''
@@ -242,7 +242,7 @@ export default function Admin() {
     setWordForm({
       kata: '',
       bahasa: 'ternate',
-      dialek: 'melayu_ternate',
+      dialek: 'ternate',
       arti: '',
       kelas_kata: 'kata_benda',
       contoh: ''
@@ -257,7 +257,7 @@ export default function Admin() {
     setWordForm({
       kata: word.kata,
       bahasa: word.bahasa,
-      dialek: word.dialek || 'melayu_ternate',
+      dialek: word.dialek || 'ternate',
       arti: word.arti,
       kelas_kata: word.kelas_kata,
       contoh: word.contoh || ''
@@ -272,13 +272,17 @@ export default function Admin() {
     const newForm = { ...wordForm, [field]: value };
     setWordForm(newForm);
 
-    // Only check duplicates in create mode, and when kata field has content
-    if (!editingWord && (field === 'kata' || field === 'bahasa') && newForm.kata.trim().length >= 2) {
+    // Check duplicates in both create and edit mode when kata field has content
+    if ((field === 'kata' || field === 'bahasa') && newForm.kata.trim().length >= 2) {
       const dupes = checkDuplicate(newForm.kata, newForm.bahasa);
-      if (dupes.length > 0) {
+      // Filter out current word being edited (so editing the same word doesn't trigger warning)
+      const relevantDupes = editingWord
+        ? dupes.filter(d => d.id !== editingWord.id)
+        : dupes;
+      if (relevantDupes.length > 0) {
         setDuplicateWarning({
-          found: dupes,
-          message: `Kata "${newForm.kata}" dalam bahasa ${newForm.bahasa} sudah ada di sistem (ID: ${dupes.map(d => d.id).join(', ')}, arti: "${dupes[0].arti}").`
+          found: relevantDupes,
+          message: `Kata "${newForm.kata}" dalam bahasa ${newForm.bahasa} sudah ada di sistem (ID: ${relevantDupes.map(d => d.id).join(', ')}, arti: "${relevantDupes[0].arti}").`
         });
       } else {
         setDuplicateWarning(null);
@@ -297,17 +301,19 @@ export default function Admin() {
       return;
     }
 
-    // Final duplicate check before submit (create mode only)
-    if (!editingWord) {
-      const dupes = checkDuplicate(wordForm.kata, wordForm.bahasa);
-      if (dupes.length > 0) {
-        const confirmAdd = confirm(
-          `⚠️ PERINGATAN DATA GANDA!\n\nKata "${wordForm.kata}" dalam bahasa ${wordForm.bahasa} sudah ada di sistem:\n` +
-          dupes.map(d => `• ID ${d.id}: "${d.kata}" → "${d.arti}" (${d.kelas_kata})`).join('\n') +
-          `\n\nApakah Anda tetap ingin menambahkan kata ini?`
-        );
-        if (!confirmAdd) return;
-      }
+    // Final duplicate check before submit (both create and edit mode)
+    const dupes = checkDuplicate(wordForm.kata, wordForm.bahasa);
+    const relevantDupes = editingWord
+      ? dupes.filter(d => d.id !== editingWord.id)
+      : dupes;
+    if (relevantDupes.length > 0) {
+      const action = editingWord ? 'memperbarui' : 'menambahkan';
+      const confirmAdd = confirm(
+        `⚠️ PERINGATAN DATA GANDA!\n\nKata "${wordForm.kata}" dalam bahasa ${wordForm.bahasa} sudah ada di sistem:\n` +
+        relevantDupes.map(d => `• ID ${d.id}: "${d.kata}" → "${d.arti}" (${d.kelas_kata})`).join('\n') +
+        `\n\nApakah Anda tetap ingin ${action} kata ini?`
+      );
+      if (!confirmAdd) return;
     }
 
     try {
@@ -457,7 +463,7 @@ export default function Admin() {
         await db.insertWord({
           kata,
           bahasa: normalizedBahasa,
-          dialek: dialek || 'melayu_ternate',
+          dialek: dialek || 'ternate',
           arti,
           kelas_kata: kelas_kata || 'kata_benda',
           contoh: contoh || '',
@@ -486,6 +492,83 @@ export default function Admin() {
     }
   };
 
+  const getDialekName = (slug) => {
+    const mappings = {
+      ternate: 'Ternate',
+      melayu_ternate: 'Ternate',
+      tidore: 'Tidore',
+      sula: 'Sula',
+      sula_standar: 'Sula'
+    };
+    return mappings[slug] || slug;
+  };
+
+  const getKelasName = (slug) => {
+    const mappings = {
+      kata_benda: 'Kata Benda',
+      kata_kerja: 'Kata Kerja',
+      kata_sifat: 'Kata Sifat',
+      kata_ganti: 'Kata Ganti',
+      kata_bilangan: 'Kata Bilangan'
+    };
+    return mappings[slug] || slug;
+  };
+
+  const parseIndonesianNumber = (text) => {
+    if (!text) return Infinity;
+    const clean = text.toLowerCase().trim();
+    const digitMatch = clean.match(/\d+/);
+    if (digitMatch) return parseInt(digitMatch[0], 10);
+    const mapping = [
+      { key: 'dua puluh satu', val: 21 },
+      { key: 'dua puluh dua', val: 22 },
+      { key: 'dua puluh tiga', val: 23 },
+      { key: 'dua puluh empat', val: 24 },
+      { key: 'dua puluh lima', val: 25 },
+      { key: 'dua puluh enam', val: 26 },
+      { key: 'dua puluh tujuh', val: 27 },
+      { key: 'dua puluh delapan', val: 28 },
+      { key: 'dua puluh sembilan', val: 29 },
+      { key: 'sembilan belas', val: 19 },
+      { key: 'delapan belas', val: 18 },
+      { key: 'tujuh belas', val: 17 },
+      { key: 'enam belas', val: 16 },
+      { key: 'lima belas', val: 15 },
+      { key: 'empat belas', val: 14 },
+      { key: 'tiga belas', val: 13 },
+      { key: 'dua belas', val: 12 },
+      { key: 'sebelas', val: 11 },
+      { key: 'sepuluh', val: 10 },
+      { key: 'sembilan', val: 9 },
+      { key: 'delapan', val: 8 },
+      { key: 'tujuh', val: 7 },
+      { key: 'enam', val: 6 },
+      { key: 'lima', val: 5 },
+      { key: 'empat', val: 4 },
+      { key: 'tiga', val: 3 },
+      { key: 'dua', val: 2 },
+      { key: 'satu', val: 1 },
+      { key: 'nol', val: 0 },
+      { key: 'kosong', val: 0 },
+      { key: 'pertama', val: 1 },
+      { key: 'kedua', val: 2 },
+      { key: 'ketiga', val: 3 },
+      { key: 'keempat', val: 4 },
+      { key: 'kelima', val: 5 },
+      { key: 'keenam', val: 6 },
+      { key: 'ketujuh', val: 7 },
+      { key: 'kedelapan', val: 8 },
+      { key: 'kesembilan', val: 9 },
+      { key: 'kesepuluh', val: 10 }
+    ];
+    for (const item of mapping) {
+      if (clean === item.key || clean.startsWith(item.key + ' ') || clean.includes(' ' + item.key + ' ') || clean.endsWith(' ' + item.key)) {
+        return item.val;
+      }
+    }
+    return Infinity;
+  };
+
   // Filter words inside admin panel
   const adminFilteredWords = words
     .filter(w => {
@@ -511,13 +594,47 @@ export default function Admin() {
     })
     .sort((a, b) => {
       if (sortBy === 'id_asc') {
+        if (a.kelas_kata === 'kata_bilangan' && b.kelas_kata === 'kata_bilangan') {
+          const valA = parseIndonesianNumber(a.arti);
+          const valB = parseIndonesianNumber(b.arti);
+          if (valA !== valB) return valA - valB;
+        }
         return a.id - b.id;
       } else if (sortBy === 'id_desc') {
+        if (a.kelas_kata === 'kata_bilangan' && b.kelas_kata === 'kata_bilangan') {
+          const valA = parseIndonesianNumber(a.arti);
+          const valB = parseIndonesianNumber(b.arti);
+          if (valA !== valB) return valB - valA;
+        }
         return b.id - a.id;
       } else if (sortBy === 'kata_asc') {
+        if (a.kelas_kata === 'kata_bilangan' && b.kelas_kata === 'kata_bilangan') {
+          const valA = parseIndonesianNumber(a.arti);
+          const valB = parseIndonesianNumber(b.arti);
+          if (valA !== valB) return valA - valB;
+        }
         return a.kata.localeCompare(b.kata);
       } else if (sortBy === 'kata_desc') {
+        if (a.kelas_kata === 'kata_bilangan' && b.kelas_kata === 'kata_bilangan') {
+          const valA = parseIndonesianNumber(a.arti);
+          const valB = parseIndonesianNumber(b.arti);
+          if (valA !== valB) return valB - valA;
+        }
         return b.kata.localeCompare(a.kata);
+      } else if (sortBy === 'arti_asc') {
+        if (a.kelas_kata === 'kata_bilangan' && b.kelas_kata === 'kata_bilangan') {
+          const valA = parseIndonesianNumber(a.arti);
+          const valB = parseIndonesianNumber(b.arti);
+          if (valA !== valB) return valA - valB;
+        }
+        return a.arti.localeCompare(b.arti);
+      } else if (sortBy === 'arti_desc') {
+        if (a.kelas_kata === 'kata_bilangan' && b.kelas_kata === 'kata_bilangan') {
+          const valA = parseIndonesianNumber(a.arti);
+          const valB = parseIndonesianNumber(b.arti);
+          if (valA !== valB) return valB - valA;
+        }
+        return b.arti.localeCompare(a.arti);
       }
       return 0;
     });
@@ -542,7 +659,7 @@ export default function Admin() {
           <div className="flex items-center space-x-3">
             <button
               onClick={fetchAdminData}
-              title="Refresh Data"
+              title="Muat Ulang Data"
               className="p-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-slate-400 hover:text-white transition-all duration-200"
             >
               <RefreshCw className="h-4 w-4" />
@@ -628,14 +745,14 @@ export default function Admin() {
                   className="px-4 py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 hover:text-white text-xs font-bold rounded-xl transition-all flex items-center space-x-1.5"
                 >
                   <Upload className="h-4 w-4 text-gold-500" />
-                  <span>Import CSV</span>
+                  <span>Impor CSV</span>
                 </button>
                 <button
                   onClick={handleExportCSV}
                   className="px-4 py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 hover:text-white text-xs font-bold rounded-xl transition-all flex items-center space-x-1.5"
                 >
                   <Download className="h-4 w-4 text-ocean-500" />
-                  <span>Export CSV</span>
+                  <span>Ekspor CSV</span>
                 </button>
                 <button
                   onClick={handleOpenCreate}
@@ -686,9 +803,9 @@ export default function Admin() {
                   className="w-full bg-slate-950 border border-white/10 rounded-xl px-3 py-2 text-slate-200 focus:outline-none focus:border-gold-500 transition-all cursor-pointer"
                 >
                   <option value="all">Semua Dialek</option>
-                  <option value="melayu_ternate">Melayu Ternate</option>
+                  <option value="ternate">Ternate</option>
                   <option value="tidore">Tidore</option>
-                  <option value="sula_standar">Sula Standar</option>
+                  <option value="sula">Sula</option>
                 </select>
               </div>
 
@@ -701,8 +818,10 @@ export default function Admin() {
                 >
                   <option value="id_asc">ID Terkecil (Awal)</option>
                   <option value="id_desc">ID Terbesar (Terbaru)</option>
-                  <option value="kata_asc">Abjad (A - Z)</option>
-                  <option value="kata_desc">Abjad (Z - A)</option>
+                  <option value="kata_asc">Kata (A - Z)</option>
+                  <option value="kata_desc">Kata (Z - A)</option>
+                  <option value="arti_asc">Arti (A - Z)</option>
+                  <option value="arti_desc">Arti (Z - A)</option>
                 </select>
               </div>
             </div>
@@ -722,7 +841,7 @@ export default function Admin() {
                   }}
                   className="text-gold-400 hover:text-gold-300 font-bold transition-colors"
                 >
-                  Reset Filter
+                  Atur Ulang Filter
                 </button>
               )}
             </div>
@@ -753,7 +872,7 @@ export default function Admin() {
                 <tbody>
                   {loading ? (
                     <tr>
-                      <td colSpan={9} className="p-8 text-center text-slate-400">Loading data...</td>
+                      <td colSpan={9} className="p-8 text-center text-slate-400">Memuat data...</td>
                     </tr>
                   ) : adminFilteredWords.length === 0 ? (
                     <tr>
@@ -778,9 +897,9 @@ export default function Admin() {
                         <td className="p-4 text-center font-bold text-slate-500">{word.id}</td>
                         <td className="p-4 font-bold text-white text-sm">{word.kata}</td>
                         <td className="p-4 uppercase font-semibold text-slate-300">{word.bahasa}</td>
-                        <td className="p-4 text-slate-400">{word.dialek || '-'}</td>
+                        <td className="p-4 text-slate-400">{getDialekName(word.dialek)}</td>
                         <td className="p-4 text-slate-300 font-semibold">{word.arti}</td>
-                        <td className="p-4 text-slate-400 font-semibold">{word.kelas_kata}</td>
+                        <td className="p-4 text-slate-400 font-semibold">{getKelasName(word.kelas_kata)}</td>
                         <td className="p-4">
                           <span className={`px-2.5 py-0.5 rounded text-[10px] font-bold ${word.status === 'dalam_review'
                               ? 'bg-amber-500/10 text-amber-500 border border-amber-500/20'
@@ -891,7 +1010,7 @@ export default function Admin() {
                   <tbody>
                     {loading ? (
                       <tr>
-                        <td colSpan={9} className="p-8 text-center text-slate-400">Loading data...</td>
+                        <td colSpan={9} className="p-8 text-center text-slate-400">Memuat data...</td>
                       </tr>
                     ) : filteredCorrections.length === 0 ? (
                       <tr>
@@ -1048,7 +1167,7 @@ export default function Admin() {
                 </div>
 
                 {/* Duplicate Warning Banner */}
-                {duplicateWarning && !editingWord && (
+                {duplicateWarning && (
                   <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/25 flex items-start space-x-2">
                     <AlertTriangle className="h-4 w-4 text-amber-500 flex-shrink-0 mt-0.5" />
                     <div className="text-xs">
@@ -1079,9 +1198,9 @@ export default function Admin() {
                       onChange={(e) => setWordForm(prev => ({ ...prev, dialek: e.target.value }))}
                       className="w-full bg-slate-950 border border-white/10 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-gold-500"
                     >
-                      <option value="melayu_ternate">Melayu Ternate</option>
+                      <option value="ternate">Ternate</option>
                       <option value="tidore">Tidore</option>
-                      <option value="sula_standar">Sula Standar</option>
+                      <option value="sula">Sula</option>
                     </select>
                   </div>
 
@@ -1165,8 +1284,8 @@ export default function Admin() {
                   <span className="text-white font-bold block uppercase tracking-wide">Format Baris CSV wajib:</span>
                   <code className="block bg-slate-950 p-2.5 rounded border border-white/10 text-gold-400 overflow-x-auto whitespace-pre">
                     kata, bahasa, dialek, arti, kelas_kata, contoh<br />
-                    fola, ternate, melayu_ternate, rumah, kata_benda, fola ena (rumah itu)<br />
-                    pia, sula, sula_standar, baik, kata_sifat, hia pia (dia baik)
+                    fola, ternate, ternate, rumah, kata_benda, fola ena (rumah itu)<br />
+                    pia, sula, sula, baik, kata_sifat, hia pia (dia baik)
                   </code>
                 </div>
 

@@ -24,7 +24,7 @@ export default function Header() {
     { name: 'Kamus', href: '/kamus', icon: BookOpen },
     { name: 'Chatbot AI', href: '/chatbot', icon: MessageSquare },
     { name: 'Kuis', href: '/kuis', icon: Award },
-    { name: 'Statistik & Review', href: '/statistik', icon: BarChart2 },
+    { name: 'Statistik & Ulasan', href: '/statistik', icon: BarChart2 },
     { name: 'Admin & Koreksi', href: '/admin', icon: ShieldAlert },
   ];
 
